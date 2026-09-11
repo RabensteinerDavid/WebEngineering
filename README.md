@@ -51,6 +51,10 @@ Split the code into separate script files and use ES modules (`import`/`export`)
 
 **Theory question:** How does an ES module differ from a classic script with respect to scope, strict mode, loading, and bindings? Explain why the module boundaries you chose make the application easier to maintain.
 
+**Answer:** ES modules have their own scope, run in strict mode automatically, are loaded with `type="module"` and support `import`/`export`. Their imports are live bindings, so they stay linked to the exported values.
+
+The chosen module boundaries separate features like search, comments, bear rendering, and API access. This makes the code easier to understand, change, test, and maintain without affecting unrelated parts.
+
 #### Task 2: Correct the application behavior
 
 Fix the semantic and functional issues according to the app requirements. Use appropriate DOM queries and event handling, and ensure the bear list has the same order and number of entries as the source page.
