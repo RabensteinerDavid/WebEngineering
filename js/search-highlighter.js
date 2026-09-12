@@ -3,7 +3,7 @@ export default function initSearchHighlighter() {
     const searchInput = document.querySelector('.search input[name="q"]');
     const article = document.querySelector('article');
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', (e) => {
         e.preventDefault();
 
         removeHighlights(article);
@@ -16,7 +16,7 @@ export default function initSearchHighlighter() {
 }
 
 function removeHighlights(article) {
-    article.querySelectorAll('.highlight').forEach(function (element) {
+    article.querySelectorAll('.highlight').forEach((element) => {
         const parent = element.parentNode;
         parent.replaceChild(document.createTextNode(element.textContent), element);
         parent.normalize();
@@ -41,7 +41,7 @@ function highlightMatches(node, regex) {
         node.tagName !== 'SCRIPT' &&
         node.tagName !== 'STYLE'
     ) {
-        node.childNodes.forEach(function (child) {
+        node.childNodes.forEach((child) => {
             highlightMatches(child, regex);
         });
     }

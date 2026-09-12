@@ -79,6 +79,10 @@ Replace promise callback chains with `async`/`await` and refactor suitable callb
 
 **Theory question:** Explain the relationship between `async`/`await`, promises, the microtask queue, and the browser event loop. Also explain why an arrow function is not always an interchangeable replacement for a regular function, particularly regarding `this`.
 
+**Answer:** async/await is built on top of Promises and makes asynchronous code easier to read. When an awaited Promise finishes, the continuation is placed in the microtask queue and handled by the browser’s event loop.
+
+Arrow functions are not always interchangeable with regular functions because they do not have their own this, they inherit this from the surrounding scope.
+
 #### Task 5: Remove remaining code smells
 
 Find and eliminate the remaining bad coding practices. Consider scope, accidental globals, mutation and shared references, function responsibilities, naming, duplication, and DOM update patterns. Document each relevant finding, why it is problematic, and how you fixed it below.

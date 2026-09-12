@@ -10,19 +10,19 @@ const params = {
     origin: "*"
 };
 
-export function fetchBearData() {
+export async function fetchBearData() {
     const url = baseUrl + "?" + new URLSearchParams(params).toString();
 
-    return fetch(url).then(function (response) {
-        if (!response.ok) {
-            throw new Error('Could not fetch bear data');
-        }
+    const response = await fetch(url);
 
-        return response.json();
-    });
+    if (!response.ok) {
+        throw new Error('Could not fetch bear data');
+    }
+
+    return await response.json();
 }
 
-export function fetchImageUrl(fileName) {
+export async function fetchImageUrl(fileName) {
     const imageParams = {
         action: "query",
         titles: "File:" + fileName,
@@ -34,22 +34,20 @@ export function fetchImageUrl(fileName) {
 
     const url = baseUrl + "?" + new URLSearchParams(imageParams).toString();
 
-    return fetch(url)
-        .then(function (response) {
-            if (!response.ok) {
-                throw new Error('Could not fetch image data');
-            }
+    const response = await fetch(url);
 
-            return response.json();
-        })
-        .then(function (data) {
-            const pages = data.query.pages;
-            const page = Object.values(pages)[0];
+    if (!response.ok) {
+        throw new Error('Could not fetch image data');
+    }
 
-            if (!page.imageinfo) {
-                throw new Error('No image URL available');
-            }
+    const data = await response.json();
 
-            return page.imageinfo[0].url;
-        });
+    const pages = data.query.pages;
+    const page = Object.values(pages)[0];
+
+    if (!page.imageinfo) {
+        throw new Error('No image URL available');
+    }
+
+    return page.imageinfo[0].url;
 }

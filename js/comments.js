@@ -6,7 +6,7 @@ function initCommentToggle() {
 
     commentWrapper.style.display = 'none';
 
-    showHideBtn.addEventListener('click', function () {
+    showHideBtn.addEventListener('click', () => {
         const isHidden = commentWrapper.style.display === 'none';
 
         commentWrapper.style.display = isHidden ? 'block' : 'none';
@@ -35,7 +35,7 @@ function initCommentForm() {
     const commentField = document.querySelector('#comment');
     const list = document.querySelector('.comment-container');
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', (e) => {
         e.preventDefault();
 
         const nameValue = nameField.value.trim();

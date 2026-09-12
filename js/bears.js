@@ -2,16 +2,17 @@ import {fetchBearData, fetchImageUrl} from './api/bears-api.js';
 
 const PLACEHOLDER_IMAGE = './media/placeholder.png';
 
-export default function initBears() {
-    fetchBearData()
-        .then(function (data) {
-            const bears = extractBears(data.parse['wikitext']['*']);
-            loadBearImages(bears);
-        })
-        .catch(function (error) {
-            console.error(error);
-            showBearError();
-        });
+export default async function initBears() {
+    try {
+        const data = await fetchBearData();
+        const bears = extractBears(data.parse['wikitext']['*']);
+
+        await loadBearImages(bears);
+        renderBears(bears);
+    } catch (error) {
+        console.error(error);
+        showBearError();
+    }
 }
 
 function extractBears(wikitext) {
@@ -23,7 +24,7 @@ function extractBears(wikitext) {
     const rows = wikitext.split('{{Species table/row').slice(1);
     const bears = [];
 
-    rows.forEach(function (row) {
+    rows.forEach((row) => {
         const nameMatch = row.match(/\|name=\[\[(.*?)]/);
         const binomialMatch = row.match(/\|binomial=(.*?)\n/);
         const imageMatch = row.match(/\|image=File:([^|\n]+)/);
@@ -48,44 +49,29 @@ function extractBears(wikitext) {
     return bears;
 }
 
-function loadBearImages(bears) {
-    let loadedImages = 0;
-
-    function imageFinished() {
-        loadedImages++;
-
-        if (loadedImages === bears.length) {
-            renderBears(bears);
-        }
-    }
-
-    bears.forEach(function (bear) {
+async function loadBearImages(bears) {
+    const imagePromises = bears.map(async (bear) => {
         if (!bear.fileName) {
             console.warn('No image filename found for ' + bear.name);
-
             bear.image = PLACEHOLDER_IMAGE;
-            imageFinished();
             return;
         }
 
-        fetchImageUrl(bear.fileName)
-            .then(function (imageUrl) {
-                bear.image = imageUrl;
-                imageFinished();
-            })
-            .catch(function (error) {
-                console.error('Could not load image for ' + bear.name, error);
-
-                bear.image = PLACEHOLDER_IMAGE;
-                imageFinished();
-            });
+        try {
+            bear.image = await fetchImageUrl(bear.fileName);
+        } catch (error) {
+            console.error('Could not load image for ' + bear.name, error);
+            bear.image = PLACEHOLDER_IMAGE;
+        }
     });
+
+    await Promise.all(imagePromises);
 }
 
 function renderBears(bears) {
     const moreBears = document.querySelector('.more_bears');
 
-    bears.forEach(function (bear) {
+    bears.forEach((bear) => {
         const bearDiv = document.createElement('div');
         bearDiv.classList.add('bear');
 
@@ -95,17 +81,19 @@ function renderBears(bears) {
         image.style.width = '200px';
         image.style.height = 'auto';
 
-        image.addEventListener('error', function () {
-            if (image.src !== PLACEHOLDER_IMAGE) {
+        image.addEventListener('error', () => {
+            if (image.getAttribute('src') !== PLACEHOLDER_IMAGE) {
                 image.src = PLACEHOLDER_IMAGE;
             }
         });
 
         bearDiv.appendChild(image);
 
-        bearDiv.innerHTML +=
+        bearDiv.insertAdjacentHTML(
+            'beforeend',
             '<p><b>' + bear.name + '</b> (' + bear.binomial + ')</p>' +
-            '<p>Range: ' + bear.range + '</p>';
+            '<p>Range: ' + bear.range + '</p>'
+        );
 
         moreBears.appendChild(bearDiv);
     });
