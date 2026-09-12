@@ -1,26 +1,25 @@
-var baseUrl = "https://en.wikipedia.org/w/api.php";
-var title = "List_of_ursids";
+const baseUrl = "https://en.wikipedia.org/w/api.php";
+const title = "List_of_ursids";
 
-var params = {
+const params = {
     action: "parse",
     page: title,
     prop: "wikitext",
-    section: 3,
+    section: "3",
     format: "json",
     origin: "*"
 };
 
 export function fetchBearData() {
-    var url = baseUrl + "?" + new URLSearchParams(params).toString();
+    const url = baseUrl + "?" + new URLSearchParams(params).toString();
 
-    return fetch(url)
-        .then(function (res) {
-            return res.json();
-        });
+    return fetch(url).then(function (response) {
+        return response.json();
+    });
 }
 
 export function fetchImageUrl(fileName) {
-    var imageParams = {
+    const imageParams = {
         action: "query",
         titles: "File:" + fileName,
         prop: "imageinfo",
@@ -29,12 +28,13 @@ export function fetchImageUrl(fileName) {
         origin: "*"
     };
 
-    var url = baseUrl + "?" + new URLSearchParams(imageParams).toString();
-    return fetch(url).then(function (res) {
-        return res.json();
+    const url = baseUrl + "?" + new URLSearchParams(imageParams).toString();
+
+    return fetch(url).then(function (response) {
+        return response.json();
     }).then(function (data) {
-        var pages = data.query.pages;
-        var page = Object.values(pages)[0];
+        const pages = data.query.pages;
+        const page = Object.values(pages)[0];
 
         return page.imageinfo[0].url;
     });

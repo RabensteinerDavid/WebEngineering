@@ -1,27 +1,23 @@
 function initCommentToggle() {
 
     // Show/hide comments toggle
-    var showHideBtn = document.querySelector('.show-hide');
-    var commentWrapper = document.querySelector('.comment-wrapper');
+    const showHideBtn = document.querySelector('.show-hide');
+    const commentWrapper = document.querySelector('.comment-wrapper');
 
     commentWrapper.style.display = 'none';
 
-    showHideBtn.onclick = function () {
-        var showHideText = showHideBtn.textContent;
-        if (showHideText === 'Show comment') {
-            showHideBtn.textContent = 'Hide comments';
-            commentWrapper.style.display = 'block';
-        } else {
-            showHideBtn.textContent = 'Show comments';
-            commentWrapper.style.display = 'none';
-        }
-    };
+    showHideBtn.addEventListener('click', function () {
+        const isHidden = commentWrapper.style.display === 'none';
+
+        commentWrapper.style.display = isHidden ? 'block' : 'none';
+        showHideBtn.textContent = isHidden ? 'Hide comments' : 'Show comments';
+    });
 }
 
 function createComment(name, comment) {
-    var listItem = document.createElement('li');
-    var namePara = document.createElement('p');
-    var commentPara = document.createElement('p');
+    const listItem = document.createElement('li');
+    const namePara = document.createElement('p');
+    const commentPara = document.createElement('p');
 
     namePara.textContent = name;
     commentPara.textContent = comment;
@@ -34,22 +30,26 @@ function createComment(name, comment) {
 function initCommentForm() {
 
     // Comment form stuff
-    var form = document.querySelector('.comment-form');
-    var nameField = document.querySelector('#name');
-    var commentField = document.querySelector('#comment');
-    var list = document.querySelector('.comment-container');
+    const form = document.querySelector('.comment-form');
+    const nameField = document.querySelector('#name');
+    const commentField = document.querySelector('#comment');
+    const list = document.querySelector('.comment-container');
 
-    form.onsubmit = function (e) {
+    form.addEventListener('submit', function (e) {
         e.preventDefault();
 
-        var nameValue = nameField.value;
-        var commentValue = commentField.value;
+        const nameValue = nameField.value.trim();
+        const commentValue = commentField.value.trim();
+
+        if (!nameValue || !commentValue) {
+            return;
+        }
 
         list.appendChild(createComment(nameValue, commentValue));
 
         nameField.value = '';
         commentField.value = '';
-    }
+    });
 }
 
 export default function initComments() {

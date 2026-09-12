@@ -61,6 +61,10 @@ Fix the semantic and functional issues according to the app requirements. Use ap
 
 **Theory question:** Describe event propagation (capturing, target, and bubbling). Where could event delegation be useful in this application, and what trade-off would it introduce?
 
+**Answer:** Event propagation describes how an event moves through the DOM. In the **capturing phase**, it travels from the document down to the target element. In the **target phase**, it reaches the element that triggered the event. In the **bubbling phase**, it travels back up through the parent elements.
+
+Event delegation could be used in the navigation by adding one click listener to `<nav>` instead of one for each link. The trade-off is that `event.target` must be checked.
+
 #### Task 3: Make failures explicit
 
 Add error handling with `try`/`catch` and show useful, user-facing error messages. Check whether each image can be loaded and render a placeholder when it cannot. Do not represent a failed request as valid empty data.

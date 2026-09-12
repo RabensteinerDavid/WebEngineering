@@ -1,20 +1,24 @@
 export default function initSearchHighlighter() {
-    document.querySelector('.search').addEventListener('submit', function (e) {
+    const form = document.querySelector('.search');
+    const searchInput = document.querySelector('.search input[name="q"]');
+    const article = document.querySelector('article');
+
+    form.addEventListener('submit', function (e) {
         e.preventDefault();
 
-        removeHighlights();
+        removeHighlights(article);
 
-        var searchKey = this.q.value.trim();
+        const searchKey = searchInput.value.trim();
         if (!searchKey) return;
 
-        walk(document.body, createRegex(searchKey));
+        highlightMatches(article, createRegex(searchKey));
     })
 }
 
-function removeHighlights() {
-    document.querySelectorAll('.highlight').forEach(function (el) {
-        var parent = el.parentNode;
-        parent.replaceChild(document.createTextNode(el.textContent), el);
+function removeHighlights(article) {
+    article.querySelectorAll('.highlight').forEach(function (element) {
+        const parent = element.parentNode;
+        parent.replaceChild(document.createTextNode(element.textContent), element);
         parent.normalize();
     });
 }
@@ -23,15 +27,22 @@ function createRegex(searchKey) {
     return new RegExp('(' + searchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
 }
 
-function walk(node, regex) {
-    if (node.nodeType === 3) { // Text node
-        var match = node.nodeValue.match(regex);
+function highlightMatches(node, regex) {
+    if (node.nodeType === Node.TEXT_NODE) {
+        const match = node.nodeValue.match(regex);
+
         if (match) {
-            var span = document.createElement('span');
+            const span = document.createElement('span');
             span.innerHTML = node.nodeValue.replace(regex, '<mark class="highlight">$1</mark>');
             node.replaceWith.apply(node, span.childNodes);
         }
-    } else if (node.nodeType === 1 && node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE' && node.tagName !== 'FORM') {
-        node.childNodes.forEach(child => walk(child, regex));
+    } else if (
+        node.nodeType === Node.ELEMENT_NODE &&
+        node.tagName !== 'SCRIPT' &&
+        node.tagName !== 'STYLE'
+    ) {
+        node.childNodes.forEach(function (child) {
+            highlightMatches(child, regex);
+        });
     }
 }
