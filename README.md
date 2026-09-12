@@ -71,6 +71,8 @@ Add error handling with `try`/`catch` and show useful, user-facing error message
 
 **Theory question:** How do synchronous exceptions and rejected promises travel through this application? Explain where errors should be caught and why catching every error at its source can make failures harder to diagnose.
 
+**Answer:** Synchronous exceptions travel up the call stack, while rejected promises travel through the promise chain until a `.catch()` handles them. Errors should be caught where they can be handled meaningfully, for example in `initBears()` for general failures and locally for image fallbacks. Catching every error immediately can hide the original cause and make debugging harder.
+
 #### Task 4: Refactor asynchronous control flow
 
 Replace promise callback chains with `async`/`await` and refactor suitable callbacks to arrow functions. Run independent asynchronous operations concurrently where doing so is safe.
