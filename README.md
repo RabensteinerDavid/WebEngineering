@@ -89,13 +89,113 @@ Find and eliminate the remaining bad coding practices. Consider scope, accidenta
 
 **Theory question:** Select one of your refactorings and explain how JavaScript scope, closures, references, or prototypes caused the original risk. State how you verified that your refactoring preserved behavior.
 
-> **What bad coding practices did you find? Why is it a bad practice and how did you fix it?**
-> 
-> _Present your findings here..._
->
-> ```js
-> console.log('Make use of markdown codesnippets to show and explain good/bad practices!')
-> ```
+**Answer:** I changed image loading so it no longer mutates the original bear objects. Since JavaScript objects are references, bear.image = ... changed shared data. Returning a new object with {...bear, image} avoids this.
+
+I verified the refactoring by testing that the same bears, images, placeholders, order, and number of entries were still displayed after the change.
+
+### What bad coding practices did you find? Why is it a bad practice and how did you fix it?
+
+#### Mutation of shared objects
+
+Bad:
+
+```js
+bear.image = await fetchImageUrl(bear.fileName);
+```
+
+JavaScript objects are reference values, so this mutates the original object.
+
+Fixed:
+
+```js
+return {...bear, image};
+```
+
+This creates a new object instead of changing shared data.
+
+#### Duplicated fetch logic
+
+Bad:
+
+```js
+const response = await fetch(url);
+
+if (!response.ok) {
+    throw new Error(...);
+}
+
+return response.json();
+```
+
+The same logic existed in multiple functions.
+
+Fixed:
+
+```js
+async function fetchJson(params, errorMessage) {
+    ...
+}
+```
+
+The common logic is now reusable and easier to maintain.
+
+#### Too many DOM updates
+
+Bad:
+
+```js
+bears.forEach((bear) => {
+    moreBears.appendChild(bearDiv);
+});
+```
+
+This updates the DOM repeatedly.
+
+Fixed:
+
+```js
+const fragment = document.createDocumentFragment();
+
+bears.forEach((bear) => {
+    fragment.appendChild(createBearElement(bear));
+});
+
+bearList.replaceChildren(fragment);
+```
+
+The DOM is updated only once.
+
+#### Using `innerHTML` for text
+
+Bad:
+
+```js
+span.innerHTML = ...
+```
+
+Dynamic text can accidentally be interpreted as HTML.
+
+Fixed:
+
+```js
+mark.textContent = part;
+```
+
+DOM elements and `textContent` are safer and clearer.
+
+#### Mixed responsibilities
+
+`renderBears()` originally created elements and updated the page at the same time.
+
+Fixed by separating:
+
+```js
+createBearElement(bear);
+renderBears(bears);
+```
+
+Each function now has one clear responsibility.
+
 
 
 ## 2. Dependency- and Build Management Playground

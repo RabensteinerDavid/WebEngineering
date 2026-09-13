@@ -1,53 +1,49 @@
-const baseUrl = "https://en.wikipedia.org/w/api.php";
-const title = "List_of_ursids";
+const WIKIPEDIA_API_URL = 'https://en.wikipedia.org/w/api.php';
+const BEAR_PAGE_TITLE = 'List_of_ursids';
 
-const params = {
-    action: "parse",
-    page: title,
-    prop: "wikitext",
-    section: "3",
-    format: "json",
-    origin: "*"
+const BEAR_DATA_PARAMS = {
+    action: 'parse',
+    page: BEAR_PAGE_TITLE,
+    prop: 'wikitext',
+    section: '3',
+    format: 'json',
+    origin: '*'
 };
 
-export async function fetchBearData() {
-    const url = baseUrl + "?" + new URLSearchParams(params).toString();
+async function fetchJson(queryParams, errorMessage) {
+    const url = WIKIPEDIA_API_URL + '?' + new URLSearchParams(queryParams).toString();
 
     const response = await fetch(url);
 
     if (!response.ok) {
-        throw new Error('Could not fetch bear data');
+        throw new Error(errorMessage);
     }
+    return response.json();
+}
 
-    return await response.json();
+export function fetchBearData() {
+    return fetchJson(BEAR_DATA_PARAMS, 'Could not fetch bear data');
 }
 
 export async function fetchImageUrl(fileName) {
     const imageParams = {
-        action: "query",
-        titles: "File:" + fileName,
-        prop: "imageinfo",
-        iiprop: "url",
-        format: "json",
-        origin: "*"
+        action: 'query',
+        titles: 'File:' + fileName,
+        prop: 'imageinfo',
+        iiprop: 'url',
+        format: 'json',
+        origin: '*'
     };
 
-    const url = baseUrl + "?" + new URLSearchParams(imageParams).toString();
+    const data = await fetchJson(imageParams, 'Could not fetch image data');
 
-    const response = await fetch(url);
+    const pages = data.query?.pages;
+    const page = pages ? Object.values(pages)[0] : null;
+    const imageUrl = page?.imageinfo?.[0]?.url;
 
-    if (!response.ok) {
-        throw new Error('Could not fetch image data');
-    }
-
-    const data = await response.json();
-
-    const pages = data.query.pages;
-    const page = Object.values(pages)[0];
-
-    if (!page.imageinfo) {
+    if (!imageUrl) {
         throw new Error('No image URL available');
     }
 
-    return page.imageinfo[0].url;
+    return imageUrl;
 }

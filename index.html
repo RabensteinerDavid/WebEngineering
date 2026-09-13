@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <title>Wildlife Website - Buggy Starter</title>
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300|Sonsie+One" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300|Sonsie+One" rel="stylesheet"
+          type="text/css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -102,11 +103,11 @@
         <section class="comments">
             <h3>Comments</h3>
 
-            <button type="button" class="show-hide">
+            <button type="button" class="show-hide" aria-expanded="false" aria-controls="comment-wrapper">
                 Show comments
             </button>
 
-            <div class="comment-wrapper">
+            <div class="comment-wrapper" id="comment-wrapper" hidden>
                 <h4>Add comment</h4>
                 <form class="comment-form">
                     <div class="flex-pair">
@@ -138,6 +139,7 @@
 
         <section class="more_bears">
             <h3>More Bears</h3>
+            <div class="bear-list" aria-live="polite"></div>
         </section>
     </article>
 

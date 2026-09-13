@@ -256,3 +256,10 @@ audio {
 .comment-container li p:nth-child(2) {
     flex: 5;
 }
+
+/* || Bears */
+
+.bear img {
+    width: 200px;
+    height: auto;
+}

@@ -1,58 +1,60 @@
-function initCommentToggle() {
+function initCommentToggle(commentsSection) {
 
     // Show/hide comments toggle
-    const showHideBtn = document.querySelector('.show-hide');
-    const commentWrapper = document.querySelector('.comment-wrapper');
+    const toggleButton = commentsSection.querySelector('.show-hide');
+    const commentWrapper = commentsSection.querySelector('.comment-wrapper');
 
-    commentWrapper.style.display = 'none';
+    toggleButton.addEventListener('click', () => {
+        commentWrapper.hidden = !commentWrapper.hidden;
 
-    showHideBtn.addEventListener('click', () => {
-        const isHidden = commentWrapper.style.display === 'none';
+        const isVisible = !commentWrapper.hidden;
 
-        commentWrapper.style.display = isHidden ? 'block' : 'none';
-        showHideBtn.textContent = isHidden ? 'Hide comments' : 'Show comments';
+        toggleButton.textContent = isVisible ? 'Hide comments' : 'Show comments';
+
+        toggleButton.setAttribute('aria-expanded', String(isVisible));
     });
 }
 
 function createComment(name, comment) {
     const listItem = document.createElement('li');
-    const namePara = document.createElement('p');
-    const commentPara = document.createElement('p');
+    const nameParagraph = document.createElement('p');
+    const commentParagraph = document.createElement('p');
 
-    namePara.textContent = name;
-    commentPara.textContent = comment;
+    nameParagraph.textContent = name;
+    commentParagraph.textContent = comment;
 
-    listItem.append(namePara, commentPara);
+    listItem.append(nameParagraph, commentParagraph);
 
     return listItem;
 }
 
-function initCommentForm() {
+function initCommentForm(commentsSection) {
 
     // Comment form stuff
-    const form = document.querySelector('.comment-form');
-    const nameField = document.querySelector('#name');
-    const commentField = document.querySelector('#comment');
-    const list = document.querySelector('.comment-container');
+    const form = commentsSection.querySelector('.comment-form');
+    const nameField = form.querySelector('#name');
+    const commentField = form.querySelector('#comment');
+    const list = commentsSection.querySelector('.comment-container');
 
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
 
-        const nameValue = nameField.value.trim();
-        const commentValue = commentField.value.trim();
+        const name = nameField.value.trim();
+        const comment = commentField.value.trim();
 
-        if (!nameValue || !commentValue) {
+        if (!name || !comment) {
             return;
         }
 
-        list.appendChild(createComment(nameValue, commentValue));
+        list.appendChild(createComment(name, comment));
 
-        nameField.value = '';
-        commentField.value = '';
+        form.reset();
     });
 }
 
 export default function initComments() {
-    initCommentToggle();
-    initCommentForm();
+    const commentsSection = document.querySelector('.comments');
+
+    initCommentToggle(commentsSection);
+    initCommentForm(commentsSection);
 }
