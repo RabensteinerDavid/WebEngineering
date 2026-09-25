@@ -1,9 +1,18 @@
-export default function initSearchHighlighter() {
-    const form = document.querySelector('.search');
-    const searchInput = form.querySelector('input[name="q"]');
-    const article = document.querySelector('article');
+export default function initSearchHighlighter(): void {
+    const form = document.querySelector<HTMLFormElement>('.search');
+    const article = document.querySelector<HTMLElement>('article');
 
-    form.addEventListener('submit', (event) => {
+    if (!form || !article) {
+        return;
+    }
+
+    const searchInput = form.querySelector<HTMLInputElement>('input[name="q"]');
+
+    if (!searchInput) {
+        return;
+    }
+
+    form.addEventListener('submit', (event: SubmitEvent) => {
         event.preventDefault();
 
         removeHighlights(article);
@@ -15,26 +24,33 @@ export default function initSearchHighlighter() {
     })
 }
 
-function removeHighlights(article) {
+function removeHighlights(article: HTMLElement): void {
     article.querySelectorAll('.highlight').forEach((element) => {
         const parent = element.parentNode;
-        parent.replaceChild(document.createTextNode(element.textContent), element);
+
+        if (!parent) {
+            return;
+        }
+
+        parent.replaceChild(document.createTextNode(element.textContent ?? ''), element);
         parent.normalize();
     });
 }
 
-function createRegex(searchKey) {
-    return new RegExp('(' + searchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+function createRegex(searchKey: string): RegExp {
+    const escapedSearchKey = searchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    return new RegExp('(' + escapedSearchKey + ')', 'gi');
 }
 
-function highlightMatches(node, regex) {
-    if (node.nodeType === Node.TEXT_NODE) {
+function highlightMatches(node: Node, regex: RegExp): void {
+    if (node instanceof Text) {
         highlightTextNode(node, regex);
         return;
     }
 
     if (
-        node.nodeType !== Node.ELEMENT_NODE ||
+        !(node instanceof Element) ||
         node.tagName === 'SCRIPT' ||
         node.tagName === 'STYLE'
     ) {
@@ -46,8 +62,8 @@ function highlightMatches(node, regex) {
     });
 }
 
-function highlightTextNode(node, regex) {
-    const parts = node.nodeValue.split(regex);
+function highlightTextNode(node: Text, regex: RegExp): void {
+    const parts = node.data.split(regex);
 
     if (parts.length === 1) {
         return;

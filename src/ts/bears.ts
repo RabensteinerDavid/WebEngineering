@@ -1,11 +1,13 @@
-import {fetchBearData, fetchImageUrl} from './api/bears-api.js';
+import {fetchBearData, fetchImageUrl} from './api/bears-api';
+
+import type { Bear, BearWithImage } from './models/bear';
 
 const PLACEHOLDER_IMAGE = './media/placeholder.png';
 
-export default async function initBears() {
+export default async function initBears(): Promise<void> {
     try {
         const data = await fetchBearData();
-        const bears = extractBears(data.parse?.wikitext?.['*']);
+        const bears = extractBears(data.parse.wikitext['*']);
         const bearsWithImages = await loadBearImages(bears);
 
         renderBears(bearsWithImages);
@@ -15,14 +17,9 @@ export default async function initBears() {
     }
 }
 
-function extractBears(wikitext) {
-
-    if (!wikitext) {
-        throw new Error('No valid bear data found');
-    }
-
+function extractBears(wikitext: string): Bear[] {
     const rows = wikitext.split('{{Species table/row').slice(1);
-    const bears = [];
+    const bears: Bear[] = [];
 
     rows.forEach((row) => {
         const nameMatch = row.match(/\|name=\[\[(.*?)]/);
@@ -30,12 +27,16 @@ function extractBears(wikitext) {
         const imageMatch = row.match(/\|image=File:([^|\n]+)/);
         const rangeMatch = row.match(/\|range=(.*?)\s*\|range-image=/);
 
-        if (nameMatch && binomialMatch && rangeMatch) {
+        const name = nameMatch?.[1];
+        const binomial = binomialMatch?.[1];
+        const range = rangeMatch?.[1];
+
+        if (name && binomial && range) {
             bears.push({
-                name: nameMatch[1],
-                binomial: binomialMatch[1].trim(),
-                fileName: imageMatch ? imageMatch[1].trim() : null,
-                range: rangeMatch[1].trim()
+                name,
+                binomial: binomial.trim(),
+                fileName: imageMatch?.[1]?.trim() ?? null,
+                range: range.trim()
             });
         }
     });
@@ -47,11 +48,11 @@ function extractBears(wikitext) {
     return bears;
 }
 
-async function loadBearImages(bears) {
+async function loadBearImages(bears: Bear[]): Promise<BearWithImage[]> {
     return Promise.all(bears.map(loadBearImage));
 }
 
-async function loadBearImage(bear) {
+async function loadBearImage(bear: Bear): Promise<BearWithImage> {
     if (!bear.fileName) {
         console.warn('No image filename found for ' + bear.name);
         return {...bear, image: PLACEHOLDER_IMAGE};
@@ -66,8 +67,13 @@ async function loadBearImage(bear) {
     }
 }
 
-function renderBears(bears) {
-    const bearList = document.querySelector('.bear-list');
+function renderBears(bears: BearWithImage[]): void {
+    const bearList = document.querySelector<HTMLElement>('.bear-list');
+
+    if (!bearList) {
+        throw new Error('Bear list element not found');
+    }
+
     const fragment = document.createDocumentFragment();
 
     bears.forEach((bear) => {
@@ -77,7 +83,7 @@ function renderBears(bears) {
     bearList.replaceChildren(fragment);
 }
 
-function createBearElement(bear) {
+function createBearElement(bear: BearWithImage): HTMLDivElement {
     const bearDiv = document.createElement('div');
     bearDiv.classList.add('bear');
 
@@ -104,8 +110,13 @@ function createBearElement(bear) {
     return bearDiv;
 }
 
-function showBearError() {
-    const bearList = document.querySelector('.bear-list');
+function showBearError(): void {
+    const bearList = document.querySelector<HTMLElement>('.bear-list');
+
+    if (!bearList) {
+        return;
+    }
+
     const errorMessage = document.createElement('p');
     errorMessage.classList.add('error-message');
     errorMessage.textContent = 'Bear data could not be displayed. Please try again later.';
