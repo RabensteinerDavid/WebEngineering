@@ -266,7 +266,13 @@ Define the following tasks within `npm scripts`:
 
 The `build`, `lint`, and `format:check` commands must exit with a non-zero status when their checks fail.
 
+> **Note:** No changes to `package.json` were necessary for this task because the required npm scripts had already been added and committed in previous tasks.
+
 **Theory question:** Why are stable, composable commands such as these useful as an interface for developers and CI? Explain idempotence and identify which of your scripts should be idempotent.
+
+**Answer:** Stable npm scripts give developers and CI the same predictable commands for building, checking, and formatting the project.
+
+Idempotence means that running the same command multiple times with the same input gives the same result. build, typecheck, lint, and format:check should be idempotent. format and lint:fix should also make no further changes after the first successful run.
 
 #### Task 5: Enforce quality before integration
 
