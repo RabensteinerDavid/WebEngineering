@@ -1,94 +1,95 @@
 export default function initSearchHighlighter(): void {
-    const form = document.querySelector<HTMLFormElement>('.search');
-    const article = document.querySelector<HTMLElement>('article');
+  const form = document.querySelector<HTMLFormElement>('.search');
+  const article = document.querySelector<HTMLElement>('article');
 
-    if (!form || !article) {
-        return;
+  if (form === null || article === null) {
+    return;
+  }
+
+  const searchInput = form.querySelector<HTMLInputElement>('input[name="q"]');
+
+  if (searchInput === null) {
+    return;
+  }
+
+  form.addEventListener('submit', (event: SubmitEvent) => {
+    event.preventDefault();
+
+    removeHighlights(article);
+
+    const searchKey = searchInput.value.trim();
+    if (searchKey === '') {
+      return;
     }
 
-    const searchInput = form.querySelector<HTMLInputElement>('input[name="q"]');
-
-    if (!searchInput) {
-        return;
-    }
-
-    form.addEventListener('submit', (event: SubmitEvent) => {
-        event.preventDefault();
-
-        removeHighlights(article);
-
-        const searchKey = searchInput.value.trim();
-        if (!searchKey) return;
-
-        highlightMatches(article, createRegex(searchKey));
-    })
+    highlightMatches(article, createRegex(searchKey));
+  });
 }
 
 function removeHighlights(article: HTMLElement): void {
-    article.querySelectorAll('.highlight').forEach((element) => {
-        const parent = element.parentNode;
+  article.querySelectorAll('.highlight').forEach((element) => {
+    const { parentNode: parent, textContent } = element;
 
-        if (!parent) {
-            return;
-        }
+    if (parent === null) {
+      return;
+    }
 
-        parent.replaceChild(document.createTextNode(element.textContent ?? ''), element);
-        parent.normalize();
-    });
+    parent.replaceChild(document.createTextNode(textContent), element);
+
+    parent.normalize();
+  });
 }
 
 function createRegex(searchKey: string): RegExp {
-    const escapedSearchKey = searchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapedSearchKey = searchKey.replace(/[\[\]\\]/gv, '\\$&');
 
-    return new RegExp('(' + escapedSearchKey + ')', 'gi');
+  return new RegExp(`(${escapedSearchKey})`, 'giv');
 }
 
 function highlightMatches(node: Node, regex: RegExp): void {
-    if (node instanceof Text) {
-        highlightTextNode(node, regex);
-        return;
-    }
+  if (node instanceof Text) {
+    highlightTextNode(node, regex);
+    return;
+  }
 
-    if (
-        !(node instanceof Element) ||
-        node.tagName === 'SCRIPT' ||
-        node.tagName === 'STYLE'
-    ) {
-        return;
-    }
+  if (
+    !(node instanceof Element) ||
+    node.tagName === 'SCRIPT' ||
+    node.tagName === 'STYLE'
+  ) {
+    return;
+  }
 
-    Array.from(node.childNodes).forEach((child) => {
-        highlightMatches(child, regex);
-    });
+  Array.from(node.childNodes).forEach((child) => {
+    highlightMatches(child, regex);
+  });
 }
 
 function highlightTextNode(node: Text, regex: RegExp): void {
-    const parts = node.data.split(regex);
+  const parts = node.data.split(regex);
+  const singlePartCount = 1;
 
-    if (parts.length === 1) {
-        return;
+  if (parts.length === singlePartCount) {
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  parts.forEach((part, index) => {
+    const divisor = 2;
+    const matchRemainder = 1;
+
+    if (index % divisor === matchRemainder) {
+      const mark = document.createElement('mark');
+
+      mark.classList.add('highlight');
+      mark.textContent = part;
+
+      fragment.appendChild(mark);
+    } else {
+      fragment.appendChild(document.createTextNode(part));
     }
+  });
 
-    const fragment = document.createDocumentFragment();
-
-    parts.forEach((part, index) => {
-        if (!part) {
-            return;
-        }
-
-        if (index % 2 === 1) {
-            const mark = document.createElement('mark');
-
-            mark.classList.add('highlight');
-            mark.textContent = part;
-
-            fragment.appendChild(mark);
-        } else {
-            fragment.appendChild(
-                document.createTextNode(part)
-            );
-        }
-    });
-
-    node.replaceWith(fragment);
+  node.replaceWith(fragment);
 }

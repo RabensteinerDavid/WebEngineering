@@ -1,21 +1,21 @@
 export interface BearDataResponse {
-    parse: {
-        wikitext: {
-            '*': string;
-        };
+  parse: {
+    wikitext: {
+      '*': string;
     };
+  };
 }
 
 export interface ImageInfo {
-    url: string;
+  url: string;
 }
 
 export interface ImagePage {
-    imageinfo?: ImageInfo[];
+  imageinfo?: ImageInfo[];
 }
 
 export interface ImageDataResponse {
-    query: {
-        pages: Record<string, ImagePage>;
-    };
+  query: {
+    pages: Record<string, ImagePage>;
+  };
 }

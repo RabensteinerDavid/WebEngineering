@@ -7,13 +7,21 @@
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "typescript": "^7.0.2",
+    "eslint-config-love": "^157.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "prettier": "^3.9.9",
+    "typescript": "^6.0.2",
     "vite": "^8.3.1"
   }
 }

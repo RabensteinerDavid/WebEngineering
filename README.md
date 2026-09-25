@@ -245,7 +245,13 @@ Use TypeScript as the primary development language and adapt the source files an
 
 Configure ESLint and Prettier using the rulesets below. Resolve all reported errors in the application code and avoid disabling rules without a written justification.
 
+eslint-config-standard-with-typescript was replaced by its recommended successor eslint-config-love because the original package is deprecated. TypeScript-specific ESLint rules are still provided through the TypeScript ESLint tooling.
+
+With `npm run lint:fix` and `npm run format` you should be able to automatically fix most of the issues.
+
 **Theory question:** What different problems do a linter, a formatter, and the TypeScript compiler detect? Give one concrete example for each from this project.
+
+**Answer:** ESLint checks code quality and rules, Prettier checks formatting, and TypeScript checks types.
 
 #### Task 4: Provide a consistent command interface
 

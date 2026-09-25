@@ -1,6 +1,6 @@
 import initSearchHighlighter from './search-highlighter';
-import initComments from "./comments";
-import initBears from "./bears";
+import initComments from './comments';
+import initBears from './bears';
 
 initSearchHighlighter();
 initComments();

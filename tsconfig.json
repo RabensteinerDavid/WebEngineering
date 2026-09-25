@@ -2,7 +2,7 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     "module": "ESNext",
-    "target": "ES2020",
+    "target": "ES2024",
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "strict": true,
@@ -12,8 +12,8 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
     "moduleResolution": "Bundler",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "noEmit": true,
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "noEmit": true
   },
   "include": ["src"]
 }
