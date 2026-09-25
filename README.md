@@ -207,7 +207,27 @@ Build the application with ``npm`` and a build and a dependency management tool 
 
 Set up the project with `npm` and a build tool of your choice (for example, Vite or Webpack). Keep source files separate from generated distribution files and commit the package-manager lockfile.
 
+1. The project was initialized with `npm init -y`. The `-y` flag accepted all default options.
+2. Vite was installed as a development dependency with `npm install --save-dev vite`.
+3. A `src` folder was created for the source files and a `public` folder for static assets. The JavaScript and CSS files were moved into `src`, while the media files were moved into `public`.
+4. The references in `index.html` were updated to point to the new file locations.
+5. `dev` and `build` commands were added to the `scripts` section of `package.json`. The `dev` command starts the Vite development server, while the `build` command creates the production build.
+6. A `.gitignore` file was added to exclude the `node_modules` and `dist` directories.
+7. `package.json` and `package-lock.json` were committed. The lockfile stores the exact dependency versions and makes the installation reproducible.
+
 **Theory question:** Distinguish source, build, distribution, and deployment. What does your build tool do in development and in a production build, and why is the lockfile important for reproducibility?
+
+**Answer:**
+- **Source:** The code developers write and edit.
+- **Build:** The process that transforms and prepares the source code.
+- **Distribution:** The generated output of the build, for example `dist/`.
+- **Deployment:** The process of delivering the distribution to a target environment.
+
+In development, Vite runs a dev server and loads code with native ES modules.
+
+In a production build, Vite creates an optimized distribution for deployment.
+
+The lockfile stores the exact dependency versions. This makes installations reproducible on different systems.
 
 #### Task 2: Migrate to TypeScript
 
