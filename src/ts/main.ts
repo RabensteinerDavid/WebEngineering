@@ -5,5 +5,3 @@ import initBears from './bears';
 initSearchHighlighter();
 initComments();
 await initBears();
-
-console.log('CI test');
