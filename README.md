@@ -278,8 +278,16 @@ Idempotence means that running the same command multiple times with the same inp
 
 Configure a pre-commit hook that checks staged code using [husky](https://typicode.github.io/husky/) and [lint-staged](https://github.com/lint-staged/lint-staged). Configure a continuous-integration workflow that installs dependencies from the lockfile and runs the non-mutating build, type, lint, and formatting checks for every push or pull request.
 
+1. Husky and lint-staged were installed as development dependencies with `npm install --save-dev husky lint-staged`.
+2. Husky was initialized with `npx husky install`.
+3. A pre commit hook was added with husky `npx lint-staged` to run prettier and eslint on staged files.
+4. A GitHub Actions workflow was created in `.github/workflows/ci.yml` to run the build, type, lint, and format:check commands on every push or pull request.
+
 **Theory question:** Compare a local pre-commit hook with a CI quality gate. Why is CI still necessary when hooks are configured, and why should CI use non-mutating checks rather than automatically rewriting source files?
 
+**Answer:** A pre-commit hook checks and can fix staged files locally. CI runs the checks independently on every push or pull request.
+
+CI is still needed because local hooks can be skipped or misconfigured. CI should only check code, not modify it, so failed checks must be fixed and committed by the developer.
 
 **ESLint Configurations**
 

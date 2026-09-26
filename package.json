@@ -11,7 +11,12 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write src",
-    "format:check": "prettier --check src"
+    "format:check": "prettier --check src",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "src/**/*": "prettier --write",
+    "src/**/*.ts": "eslint --fix"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +25,8 @@
     "eslint-config-love": "^157.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
     "prettier": "^3.9.9",
     "typescript": "^6.0.2",
     "vite": "^8.3.1"
