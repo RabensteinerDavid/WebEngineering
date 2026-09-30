@@ -1,3 +1,4 @@
+import Highlight from '../search/Highlight';
 import type { JSX } from 'react';
 interface BearType {
   type: string;
@@ -27,28 +28,58 @@ const bearTypes: BearType[] = [
   },
 ];
 
-export default function BearTypeTable(): JSX.Element {
+interface BearTypeTableProps {
+  query: string;
+}
+
+export default function BearTypeTable({
+  query,
+}: BearTypeTableProps): JSX.Element {
   return (
     <table>
       <thead>
         <tr>
-          <th scope="col">Bear Type</th>
-          <th scope="col">Coat</th>
-          <th scope="col">Adult size</th>
-          <th scope="col">Habitat</th>
-          <th scope="col">Lifespan</th>
-          <th scope="col">Diet</th>
+          <th scope="col">
+            <Highlight query={query}>Bear Type</Highlight>
+          </th>
+          <th scope="col">
+            <Highlight query={query}>Coat</Highlight>
+          </th>
+          <th scope="col">
+            <Highlight query={query}>Adult size</Highlight>
+          </th>
+          <th scope="col">
+            <Highlight query={query}>Habitat</Highlight>
+          </th>
+          <th scope="col">
+            <Highlight query={query}>Lifespan</Highlight>
+          </th>
+          <th scope="col">
+            <Highlight query={query}>Diet</Highlight>
+          </th>
         </tr>
       </thead>
       <tbody>
         {bearTypes.map((bear) => (
           <tr key={bear.type}>
-            <td>{bear.type}</td>
-            <td>{bear.coat}</td>
-            <td>{bear.adultSize}</td>
-            <td>{bear.habitat}</td>
-            <td>{bear.lifespan}</td>
-            <td>{bear.diet}</td>
+            <td>
+              <Highlight query={query}>{bear.type}</Highlight>
+            </td>
+            <td>
+              <Highlight query={query}>{bear.coat}</Highlight>
+            </td>
+            <td>
+              <Highlight query={query}>{bear.adultSize}</Highlight>
+            </td>
+            <td>
+              <Highlight query={query}>{bear.habitat}</Highlight>
+            </td>
+            <td>
+              <Highlight query={query}>{bear.lifespan}</Highlight>
+            </td>
+            <td>
+              <Highlight query={query}>{bear.diet}</Highlight>
+            </td>
           </tr>
         ))}
       </tbody>

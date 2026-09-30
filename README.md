@@ -345,6 +345,10 @@ Implement the comment toggle, comment form, and search behavior with React event
 
 **Theory question:** Distinguish props, stored state, and derived values. Explain why direct mutation can produce incorrect React behavior and when lifting state is preferable to introducing context.
 
+**Answer:** Props are passed from parent to child. Stored state is saved between renders. Derived values are calculated from props or state.
+
+Direct mutation can prevent correct React updates. Lift state for a few related components. Use Context when many components need the same data.
+
 #### Task 4: Load and represent remote data
 
 Load and validate the bear data within the React application. Represent loading, success, empty, and error states explicitly; prevent stale requests from overwriting newer results; and retain the image fallback behavior from Playground 1.

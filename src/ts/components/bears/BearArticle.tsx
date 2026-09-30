@@ -1,52 +1,90 @@
+import Highlight from '../search/Highlight';
 import type { JSX } from 'react';
 import type { BearWithImage } from '../../models/bear';
 import BearList from './BearList';
 import BearTypeTable from './BearTypeTable';
+import Comments from '../comments/Comments';
 
 interface BearArticleProps {
+  query: string;
   bears: BearWithImage[];
 }
 
-export default function BearArticle({ bears }: BearArticleProps): JSX.Element {
+export default function BearArticle({
+  bears,
+  query,
+}: BearArticleProps): JSX.Element {
   return (
     <>
-      <h2>The trouble with Bears</h2>
-      <p>By Evan Wild</p>
+      <h2>
+        <Highlight query={query}>The trouble with Bears</Highlight>
+      </h2>
       <p>
-        Tall, lumbering, angry, dangerous. The real live bears of this world are
-        proud, independent creatures, self-serving and always on the hunt for
-        food.
+        <Highlight query={query}>By Evan Wild</Highlight>
+      </p>
+      <p>
+        <Highlight query={query}>
+          Tall, lumbering, angry, dangerous. The real live bears of this world
+          are proud, independent creatures, self-serving and always on the hunt
+          for food.
+        </Highlight>
       </p>
 
-      <h3>Types of bear</h3>
-      <BearTypeTable />
+      <h3>
+        <Highlight query={query}>Types of bear</Highlight>
+      </h3>
+      <BearTypeTable query={query} />
 
-      <h3>Habitats and Eating habits</h3>
+      <h3>
+        <Highlight query={query}>Habitats and Eating habits</Highlight>
+      </h3>
       <p>
-        Wild bears eat a variety of meat, fish, fruit, nuts, and other natually
-        growing ingredients...
+        <Highlight query={query}>
+          Wild bears eat a variety of meat, fish, fruit, nuts, and other
+          natually growing ingredients...
+        </Highlight>
       </p>
       <img src="/media/wild-bear.jpg" alt="Wild bear in forest" />
       <p>
-        Urban (gentrified) bears on the other hand have largely abandoned the
-        old ways...
+        <Highlight query={query}>
+          Urban (gentrified) bears on the other hand have largely abandoned the
+          old ways...
+        </Highlight>
       </p>
       <img src="/media/urban-bear.jpg" alt="Urban bear near buildings" />
 
-      <h3>Mating rituals</h3>
-      <p>Bears are romantic creatures by nature...</p>
+      <h3>
+        <Highlight query={query}>Mating rituals</Highlight>
+      </h3>
+      <p>
+        <Highlight query={query}>
+          Bears are romantic creatures by nature...
+        </Highlight>
+      </p>
       <audio controls>
         <source src="/media/bear.mp3" type="audio/mp3" />
         <source src="/media/bear.ogg" type="audio/ogg" />
-        <p>It looks like your browser doesn't support HTML5 audio players.</p>
+        <p>
+          <Highlight query={query}>
+            It looks like your browser doesn't support HTML5 audio players.
+          </Highlight>
+        </p>
       </audio>
 
       <aside>
-        <h3>About the author</h3>
-        <p>Evan Wild is an unemployed plumber from Doncaster...</p>
+        <h3>
+          <Highlight query={query}>About the author</Highlight>
+        </h3>
+        <p>
+          <Highlight query={query}>
+            Evan Wild is an unemployed plumber from Doncaster...
+          </Highlight>
+        </p>
       </aside>
 
-      <BearList bears={bears} />
+      <Comments query={query} />
+
+      <BearList bears={bears} query={query} />
     </>
   );
 }

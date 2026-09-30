@@ -3,7 +3,11 @@ import Search from '../search/Search';
 
 const links = ['Home', 'Our team', 'Projects', 'Blog'];
 
-export default function Navigation(): JSX.Element {
+interface NavigationProps {
+  onSearch: (query: string) => void;
+}
+
+export default function Navigation({ onSearch }: NavigationProps): JSX.Element {
   return (
     <nav className="nav">
       <ul>
@@ -13,7 +17,7 @@ export default function Navigation(): JSX.Element {
           </li>
         ))}
       </ul>
-      <Search />
+      <Search onSearch={onSearch} />
     </nav>
   );
 }
