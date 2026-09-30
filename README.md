@@ -365,6 +365,10 @@ Add at least a list route and a bear-detail route using a stable bear identifier
 
 **Theory question:** Distinguish client-side rendering, a single-page application, and client-side routing. Compare route parameters with query parameters, and describe one benefit and one cost of the SPA architecture used here.
 
+**Answer:** Client-side rendering creates the UI in the browser, a SPA works without full page reloads, and client-side routing switches views based on the URL.
+
+Route parameters identify resources, while query parameters are used for optional filters or searches. SPAs provide smooth navigation but increase frontend complexity.
+
 ---
 
 ## In-Class Accessibility Workshop

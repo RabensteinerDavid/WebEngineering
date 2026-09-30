@@ -1,11 +1,15 @@
 import { useState, type JSX } from 'react';
 
 interface SearchProps {
+  initialQuery: string;
   onSearch: (query: string) => void;
 }
 
-export default function Search({ onSearch }: SearchProps): JSX.Element {
-  const [query, setQuery] = useState('');
+export default function Search({
+  initialQuery,
+  onSearch,
+}: SearchProps): JSX.Element {
+  const [query, setQuery] = useState(initialQuery);
 
   return (
     <form
