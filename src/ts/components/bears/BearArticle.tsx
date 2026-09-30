@@ -1,19 +1,14 @@
 import Highlight from '../search/Highlight';
 import type { JSX } from 'react';
-import type { BearWithImage } from '../../models/bear';
 import BearList from './BearList';
 import BearTypeTable from './BearTypeTable';
 import Comments from '../comments/Comments';
 
 interface BearArticleProps {
   query: string;
-  bears: BearWithImage[];
 }
 
-export default function BearArticle({
-  bears,
-  query,
-}: BearArticleProps): JSX.Element {
+export default function BearArticle({ query }: BearArticleProps): JSX.Element {
   return (
     <>
       <h2>
@@ -84,7 +79,7 @@ export default function BearArticle({
 
       <Comments query={query} />
 
-      <BearList bears={bears} query={query} />
+      <BearList query={query} />
     </>
   );
 }

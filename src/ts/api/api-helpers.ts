@@ -4,10 +4,11 @@ const WIKIPEDIA_API_URL = 'https://en.wikipedia.org/w/api.php';
 
 export async function fetchJson(
   queryParams: Record<string, string>,
-  errorMessage: string
+  errorMessage: string,
+  signal?: AbortSignal
 ): Promise<unknown> {
   const url = `${WIKIPEDIA_API_URL}?${new URLSearchParams(queryParams).toString()}`;
-  const response = await fetch(url);
+  const response = await fetch(url, { signal: signal ?? null });
 
   if (!response.ok) {
     throw new Error(errorMessage);

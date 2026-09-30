@@ -355,6 +355,10 @@ Load and validate the bear data within the React application. Represent loading,
 
 **Theory question:** Why is fetching data a synchronization with an external system rather than part of pure rendering? Explain how cleanup or cancellation prevents race conditions when a component unmounts or a request becomes irrelevant.
 
+**Answer:** Fetching data is a side effect because it synchronizes the application with an external system. Pure rendering should only calculate the UI from the current props and state without causing external changes.
+
+Cleanup or cancellation stops requests that are no longer relevant. This prevents an old request from updating the component after it has unmounted or after a newer request has already started, avoiding race conditions and outdated data.
+
 #### Task 5: Add client-side routing and verify the migration
 
 Add at least a list route and a bear-detail route using a stable bear identifier as a route parameter. Use query parameters for optional search/filter view state where appropriate. Verify that every requirement from Playground 1 still works and that all Playground 2 quality commands pass.

@@ -5,33 +5,29 @@ import type { Bear, BearWithImage } from './models/bear';
 export const PLACEHOLDER_IMAGE = '/media/placeholder.png';
 const FIRST_ITEM_INDEX = 0;
 
-export async function loadBears(): Promise<BearWithImage[]> {
-  const data = await fetchBearData();
+export async function loadBears(
+  signal?: AbortSignal
+): Promise<BearWithImage[]> {
+  const data = await fetchBearData(signal);
   const bears = extractBears(data.parse.wikitext['*']);
-  return await Promise.all(bears.map(loadBearImage));
+  return await Promise.all(
+    bears.map(async (bear) => await loadBearImage(bear, signal))
+  );
 }
 
 function extractBears(wikitext: string): Bear[] {
   const [, ...rows] = wikitext.split('{{Species table/row');
-  const bears = rows
-    .map(extractBearFromRow)
-    .filter((bear): bear is Bear => bear !== null);
-
-  if (bears.length === FIRST_ITEM_INDEX) {
-    throw new Error('No valid bear data found');
-  }
-
-  return bears;
+  return rows.map(extractBearFromRow);
 }
 
-function extractBearFromRow(row: string): Bear | null {
+function extractBearFromRow(row: string): Bear {
   const name = matchGroup(row, /\|name=\[\[(?<name>.*?)/v);
   const binomial = matchGroup(row, /\|binomial=(?<binomial>.*?)\n/v);
   const fileName = matchGroup(row, /\|image=File:(?<fileName>[^\n]+)/v);
   const range = matchGroup(row, /\|range=(?<range>.*?)\s*\|range-image=/v);
 
   if (name === undefined || binomial === undefined || range === undefined) {
-    return null;
+    throw new Error('Invalid bear entry received');
   }
 
   return {
@@ -49,7 +45,10 @@ function matchGroup(row: string, regex: RegExp): string | undefined {
     : Object.values(groups)[FIRST_ITEM_INDEX];
 }
 
-async function loadBearImage(bear: Bear): Promise<BearWithImage> {
+async function loadBearImage(
+  bear: Bear,
+  signal?: AbortSignal
+): Promise<BearWithImage> {
   const { fileName } = bear;
 
   if (fileName === null || fileName === '') {
@@ -57,9 +56,10 @@ async function loadBearImage(bear: Bear): Promise<BearWithImage> {
   }
 
   try {
-    const image = await fetchImageUrl(fileName);
+    const image = await fetchImageUrl(fileName, signal);
     return { ...bear, image };
   } catch (error) {
+    signal?.throwIfAborted();
     return { ...bear, image: PLACEHOLDER_IMAGE };
   }
 }

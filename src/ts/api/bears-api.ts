@@ -17,8 +17,14 @@ const BEAR_DATA_PARAMS: Record<string, string> = {
   origin: '*',
 };
 
-export async function fetchBearData(): Promise<BearDataResponse> {
-  const data = await fetchJson(BEAR_DATA_PARAMS, 'Could not fetch bear data');
+export async function fetchBearData(
+  signal?: AbortSignal
+): Promise<BearDataResponse> {
+  const data = await fetchJson(
+    BEAR_DATA_PARAMS,
+    'Could not fetch bear data',
+    signal
+  );
 
   if (!isBearDataResponse(data)) {
     throw new Error('Invalid bear data received');
@@ -27,7 +33,10 @@ export async function fetchBearData(): Promise<BearDataResponse> {
   return data;
 }
 
-export async function fetchImageUrl(fileName: string): Promise<string> {
+export async function fetchImageUrl(
+  fileName: string,
+  signal?: AbortSignal
+): Promise<string> {
   const imageParams: Record<string, string> = {
     action: 'query',
     titles: `File:${fileName}`,
@@ -37,7 +46,11 @@ export async function fetchImageUrl(fileName: string): Promise<string> {
     origin: '*',
   };
 
-  const data = await fetchJson(imageParams, 'Could not fetch image data');
+  const data = await fetchJson(
+    imageParams,
+    'Could not fetch image data',
+    signal
+  );
 
   if (!isImageDataResponse(data)) {
     throw new Error('Invalid image data received');
