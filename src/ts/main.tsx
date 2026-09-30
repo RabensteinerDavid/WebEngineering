@@ -1,14 +1,8 @@
-import * as React from 'react';
+import App from './App';
+
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-
-import initSearchHighlighter from './search-highlighter';
-import initComments from './comments';
-import initBears from './bears';
-
-function App(): React.JSX.Element {
-  return <h1>This is the new wildlife section.</h1>;
-}
+import { loadBears } from './bears';
 
 const root = document.getElementById('root');
 
@@ -16,12 +10,10 @@ if (root === null) {
   throw new Error('Root element not found');
 }
 
+const bears = await loadBears();
+
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <App bears={bears} />
   </StrictMode>
 );
-
-initSearchHighlighter();
-initComments();
-await initBears();

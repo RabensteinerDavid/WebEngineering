@@ -335,6 +335,10 @@ Decompose the interface into components organised by feature. Use props where ap
 
 **Theory question:** Explain how component boundaries and typed props act as contracts. What makes a key stable, why does React need keys during reconciliation, and why is an array index unsuitable when list entries can change order?
 
+**Answer:** Component boundaries separate responsibilities, while typed props define a clear contract for what data a component expects.
+
+React uses keys during reconciliation to identify list items across renders. A good key is unique and stable, meaning it stays the same for the same item. Array indexes are unsuitable when the order can change because they represent the item's position, not its identity, which can cause React to associate state with the wrong item.
+
 #### Task 3: Model state and interaction
 
 Implement the comment toggle, comment form, and search behavior with React events and state. Use controlled inputs, immutable updates, and derived values rather than duplicate state. Lift state only to the closest common owner that needs it.
