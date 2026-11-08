@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { UpstreamError } from './errors.js';
 
 const minimumLength = 1;
 const emptyCount = 0;
@@ -39,16 +40,24 @@ const imagesSchema = z.object({
 async function fetchWikipedia(
   params: Record<string, string>
 ): Promise<unknown> {
-  const url = new URL(
-    process.env.WIKIPEDIA_API_URL ?? 'https://en.wikipedia.org/w/api.php'
-  );
-  url.search = new URLSearchParams({ ...params, format: 'json' }).toString();
-  const response = await fetch(url, {
-    headers: { 'User-Agent': userAgent },
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-  if (!response.ok) throw new Error('Wikipedia request failed');
-  return await response.json();
+  try {
+    const url = new URL(
+      process.env.WIKIPEDIA_API_URL ?? 'https://en.wikipedia.org/w/api.php'
+    );
+    url.search = new URLSearchParams({ ...params, format: 'json' }).toString();
+    const response = await fetch(url, {
+      headers: { 'User-Agent': userAgent },
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (!response.ok)
+      throw new Error(`Wikipedia returned HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    throw new UpstreamError(
+      error instanceof Error && error.name === 'TimeoutError',
+      error
+    );
+  }
 }
 
 function matchValue(row: string, pattern: RegExp): string {
@@ -115,7 +124,7 @@ async function loadImageUrls(
   return images;
 }
 
-export async function loadBears(): Promise<Bear[]> {
+async function fetchBears(): Promise<Bear[]> {
   const response = await fetchWikipedia({
     action: 'parse',
     page: 'List_of_ursids',
@@ -132,7 +141,7 @@ export async function loadBears(): Promise<Bear[]> {
   const entries = rows.map(extractBear);
 
   if (entries.length === emptyCount) {
-    throw new Error('No bear rows found in Wikipedia response');
+    throw new UpstreamError();
   }
 
   const imageUrls = await loadImageUrls(entries.map((entry) => entry.fileName));
@@ -153,4 +162,13 @@ export async function loadBears(): Promise<Bear[]> {
   }
 
   return bears;
+}
+
+export async function loadBears(): Promise<Bear[]> {
+  try {
+    return await fetchBears();
+  } catch (error) {
+    if (error instanceof z.ZodError) throw new UpstreamError(false, error);
+    throw error;
+  }
 }

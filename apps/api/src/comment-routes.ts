@@ -2,15 +2,13 @@ import { randomUUID } from 'node:crypto';
 import { Router } from 'express';
 import { z } from 'zod';
 import { loadBears } from './bears.js';
-import { sendUpstreamError } from './bear-routes.js';
+import { NotFoundError, ValidationError } from './errors.js';
 
 export const commentRoutes = Router();
 
 const minimumLength = 1;
 const maxAuthorLength = 80;
 const maxTextLength = 2000;
-const badRequest = 400;
-const notFound = 404;
 const created = 201;
 const noContent = 204;
 
@@ -33,62 +31,56 @@ async function bearExists(id: string): Promise<boolean> {
 }
 
 commentRoutes.get('/bears/:id/comments', async (request, response) => {
-  try {
-    const {
-      params: { id },
-    } = request;
-    if (!(await bearExists(id))) {
-      response.status(notFound).json({ message: 'Bear not found.' });
-      return;
-    }
-
-    response.json(
-      [...comments.values()].filter((comment) => comment.bearId === id)
-    );
-  } catch (error) {
-    sendUpstreamError(response, error);
+  const {
+    params: { id },
+  } = request;
+  if (!(await bearExists(id))) {
+    throw new NotFoundError('Bear not found.');
   }
+
+  response.json(
+    [...comments.values()].filter((comment) => comment.bearId === id)
+  );
 });
 
 commentRoutes.post('/bears/:id/comments', async (request, response) => {
   const result = newCommentSchema.safeParse(request.body);
   if (!result.success) {
-    response.status(badRequest).json({ message: 'Author or text is invalid.' });
-    return;
+    throw new ValidationError(
+      'Author or text is invalid.',
+      result.error.issues.map((issue) => ({
+        field: issue.path.join('.'),
+        message: issue.message,
+      }))
+    );
   }
 
-  try {
-    const {
-      params: { id },
-    } = request;
-    if (!(await bearExists(id))) {
-      response.status(notFound).json({ message: 'Bear not found.' });
-      return;
-    }
-
-    const comment: Comment = {
-      id: randomUUID(),
-      bearId: id,
-      ...result.data,
-      createdAt: new Date().toISOString(),
-    };
-    comments.set(comment.id, comment);
-
-    response
-      .status(created)
-      .location(`/api/comments/${comment.id}`)
-      .json(comment);
-  } catch (error) {
-    sendUpstreamError(response, error);
+  const {
+    params: { id },
+  } = request;
+  if (!(await bearExists(id))) {
+    throw new NotFoundError('Bear not found.');
   }
+
+  const comment: Comment = {
+    id: randomUUID(),
+    bearId: id,
+    ...result.data,
+    createdAt: new Date().toISOString(),
+  };
+  comments.set(comment.id, comment);
+
+  response
+    .status(created)
+    .location(`/api/comments/${comment.id}`)
+    .json(comment);
 });
 
 commentRoutes.get('/comments/:commentId', (request, response) => {
   const comment = comments.get(request.params.commentId);
 
   if (comment === undefined) {
-    response.status(notFound).json({ message: 'Comment not found.' });
-    return;
+    throw new NotFoundError('Comment not found.');
   }
 
   response.json(comment);
@@ -97,8 +89,7 @@ commentRoutes.get('/comments/:commentId', (request, response) => {
 commentRoutes.delete('/comments/:commentId', (request, response) => {
   const deleted = comments.delete(request.params.commentId);
   if (!deleted) {
-    response.status(notFound).json({ message: 'Comment not found.' });
-    return;
+    throw new NotFoundError('Comment not found.');
   }
 
   response.status(noContent).end();

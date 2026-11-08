@@ -1,3 +1,4 @@
+import { checkResponse } from './api/problem';
 import type { BearWithImage } from './models/bear';
 
 export const PLACEHOLDER_IMAGE = '/media/placeholder.png';
@@ -16,25 +17,10 @@ export async function loadBears(
   const url =
     id === undefined ? '/api/bears' : `/api/bears/${encodeURIComponent(id)}`;
   const response = await fetch(url, { signal: signal ?? null });
-  const notFound = 404;
-  if (id !== undefined && response.status === notFound) return [];
+  await checkResponse(response);
   const data: unknown = await response.json();
-  if (!response.ok) {
-    throw new Error(getErrorMessage(data));
-  }
   const bears: unknown = id === undefined ? data : [data];
   if (!Array.isArray(bears) || !bears.every(isBear))
     throw new Error('Invalid bear data received.');
   return bears;
-}
-
-function getErrorMessage(data: unknown): string {
-  if (
-    typeof data === 'object' &&
-    data !== null &&
-    'message' in data &&
-    typeof data.message === 'string'
-  )
-    return data.message;
-  return 'Could not load bears.';
 }

@@ -497,3 +497,54 @@ curl -i -X DELETE http://localhost:3000/api/comments/does-not-exist
 ```
 
 Expected: `404 Not Found`.
+#### Task 4: One error format for everything
+
+### Theory
+
+Why exactly one error contract? Which information must never leave the server, and how do request ids
+connect a complaint to a log line?
+
+### Answer
+
+One error contract ensures that all API errors have the same format, making them easier for the frontend to handle consistently.
+
+Sensitive information like stack traces, passwords, tokens, internal server details, or database information must never be exposed to the client.
+
+The API accepts an incoming `x-request-id` with 1–128 letters, digits, underscores, or hyphens; otherwise it generates a UUID. The ID appears in the response header and server logs, and the error's `instance` is `/requests/<requestId>`. This allows developers to find the corresponding log entry when a user reports an error.
+
+### Commands to demonstrate Task 4
+
+**400 Bad Request (invalid comment):**
+
+```sh
+curl -i -X POST http://localhost:3000/api/bears/u-arctos/comments \
+  -H 'Content-Type: application/json' \
+  -d '{"author":"","text":""}'
+```
+
+Expected: `400 Bad Request` and an `errors` array with validation messages.
+
+**404 Not Found (unknown route):**
+
+```sh
+curl -i http://localhost:3000/api/does-not-exist
+```
+
+Expected: `404 Not Found`.
+
+**502 Bad Gateway (Wikipedia unavailable):**
+
+```sh
+WIKIPEDIA_API_URL=https://falsche.url/w/api.php npm run dev
+curl -i http://localhost:3000/api/bears
+```
+
+Expected: `502 Bad Gateway`, not an empty list.
+
+**500 Internal Server Error (deliberately thrown error):**
+
+```sh
+curl -i http://localhost:3000/api/debug/error
+```
+
+Expected: `500 Internal Server Error` with a generic detail, without a stack trace or internal error message.

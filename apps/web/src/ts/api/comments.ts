@@ -1,3 +1,5 @@
+import { checkResponse } from './problem';
+
 export interface Comment {
   id: string;
   bearId: string;
@@ -26,7 +28,7 @@ export async function loadComments(
       signal,
     }
   );
-  if (!response.ok) throw new Error('Could not load comments.');
+  await checkResponse(response);
   const data: unknown = await response.json();
   if (!Array.isArray(data) || !data.every(isComment)) {
     throw new Error('Invalid comment data.');
@@ -47,7 +49,7 @@ export async function addComment(
       body: JSON.stringify({ author, text }),
     }
   );
-  if (!response.ok) throw new Error('Could not save comment.');
+  await checkResponse(response);
   const data: unknown = await response.json();
   if (!isComment(data)) throw new Error('Invalid comment data.');
   return data;
@@ -60,5 +62,5 @@ export async function deleteComment(commentId: string): Promise<void> {
       method: 'DELETE',
     }
   );
-  if (!response.ok) throw new Error('Could not delete comment.');
+  await checkResponse(response);
 }
