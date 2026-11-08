@@ -391,3 +391,48 @@ You might have noticed that the base project has a number of accessibility issue
 >
 
 <p>© 2026 Leon Freudenthaler (Hochschule Campus Wien). All rights reversed.</p>
+
+## Playground 4 
+
+#### Task 1: API workspace (Express)
+
+### Structure and decisions
+
+- `apps/web`: existing React app, with its own package and TypeScript configuration.
+- `apps/api`: small Express server, strict TypeScript, ESM, and one health route.
+- Root `package.json`: npm workspaces and shared tools. `concurrently` starts both dev servers together.
+- Root `npm run build`, `typecheck`, `lint`, and `format:check` check both apps. `lint:fix` and `format` also apply to both.
+- Husky/lint-staged checks staged source files in both workspaces. CI checks both and builds both Docker images.
+
+I use Express instead of Fastify because this task only needs a small HTTP server, and its `app.get()` and `response.json()` calls are easy to explain. And mostly because I have more experience with Express than Fastify.
+
+### Theory
+Node's event loop: why does one slow synchronous operation delay every request? What is a health endpoint for, and who calls it?
+
+### Answer:
+Node.js runs JavaScript callbacks on a single event-loop thread. A slow synchronous operation blocks that thread, so other requests must wait. Asynchronous I/O allows the event loop to handle other work while waiting, but CPU-heavy JavaScript still blocks it, even inside an async function. Such tasks can be offloaded to worker threads.
+
+A health endpoint allows monitoring systems, load balancers, container health checks, or developers using curl to check whether a server responds. A simple liveness check confirms that the API is running, but not that external services like Wikipedia are available.
+
+### Commands to start and test
+
+Start both containers:
+
+```sh
+docker compose up --build
+```
+
+In a second terminal, check the API directly and through the Nginx proxy:
+
+```sh
+curl -i http://localhost:3000/health
+curl -i http://localhost:8080/api/health
+```
+
+Both requests should return `200 OK` and JSON containing `status`, `version`, and `uptime`. `uptime` is the API process runtime in seconds.
+
+Check the web page:
+
+```sh
+curl -i http://localhost:8080/bears
+```

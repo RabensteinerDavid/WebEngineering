@@ -37,4 +37,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: dist
-          path: dist
+          path: apps/*/dist
+      - name: Build Docker images
+        run: docker compose build
