@@ -1,5 +1,6 @@
 import express from 'express';
 import { bearRoutes } from './bear-routes.js';
+import { commentRoutes } from './comment-routes.js';
 import { readFileSync } from 'node:fs';
 
 const app = express();
@@ -21,7 +22,9 @@ app.get('/health', (_request, response) => {
   response.json({ status: 'ok', version, uptime: process.uptime() });
 });
 
+app.use(express.json());
 app.use('/api/bears', bearRoutes);
+app.use('/api', commentRoutes);
 
 app.listen(port, '0.0.0.0', () => {
   process.stdout.write(`API running on http://localhost:${port}\n`);

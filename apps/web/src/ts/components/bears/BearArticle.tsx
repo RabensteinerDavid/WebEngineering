@@ -2,7 +2,6 @@ import Highlight from '../search/Highlight';
 import type { JSX } from 'react';
 import BearList from './BearList';
 import BearTypeTable from './BearTypeTable';
-import Comments from '../comments/Comments';
 
 interface BearArticleProps {
   query: string;
@@ -76,8 +75,6 @@ export default function BearArticle({ query }: BearArticleProps): JSX.Element {
           </Highlight>
         </p>
       </aside>
-
-      <Comments query={query} />
 
       <BearList query={query} />
     </>

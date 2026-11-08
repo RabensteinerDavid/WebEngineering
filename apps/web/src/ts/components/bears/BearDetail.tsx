@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import useBears from '../../hooks/useBears';
 import BearCard from './BearCard';
 import Highlight from '../search/Highlight';
+import Comments from '../comments/Comments';
 
 interface BearDetailProps {
   query: string;
@@ -35,6 +36,7 @@ export default function BearDetail({ query }: BearDetailProps): JSX.Element {
               <Highlight query={query}>{bear.name}</Highlight>
             </h2>
             <BearCard bear={bear} query={query} />
+            <Comments bearId={bear.id} query={query} />
           </>
         )}
       </div>

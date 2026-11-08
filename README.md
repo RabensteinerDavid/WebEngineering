@@ -447,3 +447,53 @@ worse than a 502?
 A BFF (Backend for Frontend) is a backend designed for a specific frontend. It moves API requests, data parsing, validation, and error handling from the browser to the server.
 
 Returning an empty `200 OK` on upstream failure is misleading because it looks like a successful request with no data. A `502` correctly indicates an upstream failure, allowing the frontend to display an error instead of an empty list.
+
+#### Task 3: Design the comments API
+
+### Theory
+
+Safe, idempotent, cacheable methods. Why POST for creating, why must DELETE be idempotent, what happens when a client retries a POST?
+
+### Answer
+
+Safe methods like GET only read data without changing server state. Idempotent methods like GET, PUT, and DELETE have the same intended effect when repeated. Cacheable responses, such as GET responses, can be stored and reused.
+
+POST is used for creating comments because it changes server state and is not idempotent, allowing each request to create a new resource. DELETE must be idempotent so repeated requests leave the comment deleted. Retrying a POST may create duplicate comments because each request can create a new resource.
+
+### Commands to test
+
+**201 Created – Create a comment:**
+
+```sh
+curl -i -X POST http://localhost:3000/api/bears/m-ursinus/comments \
+  -H "Content-Type: application/json" \
+  -d '{"author":"David","text":"This is a test comment"}'
+```
+
+Expected: `201 Created` with a `Location` header. Copy the returned comment ID.
+
+**204 No Content – Delete the comment:**
+
+```sh
+curl -i -X DELETE http://localhost:3000/api/comments/YOUR-COMMENT-ID
+```
+
+Expected: `204 No Content`.
+
+**400 Bad Request – Invalid input:**
+
+```sh
+curl -i -X POST http://localhost:3000/api/bears/m-ursinus/comments \
+  -H "Content-Type: application/json" \
+  -d '{"author":"","text":""}'
+```
+
+Expected: `400 Bad Request`.
+
+**404 Not Found – Unknown comment:**
+
+```sh
+curl -i -X DELETE http://localhost:3000/api/comments/does-not-exist
+```
+
+Expected: `404 Not Found`.

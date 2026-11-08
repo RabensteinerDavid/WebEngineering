@@ -275,3 +275,9 @@ audio {
   width: 200px;
   height: auto;
 }
+
+.comment-error {
+  color: red;
+  text-align: center;
+  font-weight: bold;
+}

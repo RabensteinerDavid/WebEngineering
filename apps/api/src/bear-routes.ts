@@ -6,7 +6,7 @@ const badGateway = 502;
 const gatewayTimeout = 504;
 const notFound = 404;
 
-function sendUpstreamError(response: Response, error: unknown): void {
+export function sendUpstreamError(response: Response, error: unknown): void {
   const timedOut = error instanceof Error && error.name === 'TimeoutError';
   response.status(timedOut ? gatewayTimeout : badGateway).json({
     message: timedOut
