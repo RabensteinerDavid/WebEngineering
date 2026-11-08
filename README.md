@@ -436,3 +436,14 @@ Check the web page:
 ```sh
 curl -i http://localhost:8080/bears
 ```
+
+#### Task 2: Move Wikipedia behind a BFF
+
+### Theory
+What is a BFF, and what moves from the browser to the server? Why is an empty 200 on upstream failure
+worse than a 502?
+
+### Answer:
+A BFF (Backend for Frontend) is a backend designed for a specific frontend. It moves API requests, data parsing, validation, and error handling from the browser to the server.
+
+Returning an empty `200 OK` on upstream failure is misleading because it looks like a successful request with no data. A `502` correctly indicates an upstream failure, allowing the frontend to display an error instead of an empty list.

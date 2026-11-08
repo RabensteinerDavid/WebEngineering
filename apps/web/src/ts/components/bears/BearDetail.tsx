@@ -11,10 +11,10 @@ interface BearDetailProps {
 export default function BearDetail({ query }: BearDetailProps): JSX.Element {
   const { bearId } = useParams();
   const { search } = useLocation();
-  const state = useBears();
+  const state = useBears(bearId);
   const bear =
     state.status === 'success'
-      ? state.bears.find((entry) => entry.binomial === bearId)
+      ? state.bears.find((entry) => entry.id === bearId)
       : undefined;
 
   return (

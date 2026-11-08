@@ -1,65 +1,40 @@
-import { fetchBearData, fetchImageUrl } from './api/bears-api';
-
-import type { Bear, BearWithImage } from './models/bear';
+import type { BearWithImage } from './models/bear';
 
 export const PLACEHOLDER_IMAGE = '/media/placeholder.png';
-const FIRST_ITEM_INDEX = 0;
 
-export async function loadBears(
-  signal?: AbortSignal
-): Promise<BearWithImage[]> {
-  const data = await fetchBearData(signal);
-  const bears = extractBears(data.parse.wikitext['*']);
-  return await Promise.all(
-    bears.map(async (bear) => await loadBearImage(bear, signal))
+function isBear(value: unknown): value is BearWithImage {
+  if (typeof value !== 'object' || value === null) return false;
+  return ['id', 'name', 'binomial', 'range', 'image'].every(
+    (key) => key in value && typeof Reflect.get(value, key) === 'string'
   );
 }
 
-function extractBears(wikitext: string): Bear[] {
-  const [, ...rows] = wikitext.split('{{Species table/row');
-  return rows.map(extractBearFromRow);
+export async function loadBears(
+  signal?: AbortSignal,
+  id?: string
+): Promise<BearWithImage[]> {
+  const url =
+    id === undefined ? '/api/bears' : `/api/bears/${encodeURIComponent(id)}`;
+  const response = await fetch(url, { signal: signal ?? null });
+  const notFound = 404;
+  if (id !== undefined && response.status === notFound) return [];
+  const data: unknown = await response.json();
+  if (!response.ok) {
+    throw new Error(getErrorMessage(data));
+  }
+  const bears: unknown = id === undefined ? data : [data];
+  if (!Array.isArray(bears) || !bears.every(isBear))
+    throw new Error('Invalid bear data received.');
+  return bears;
 }
 
-function extractBearFromRow(row: string): Bear {
-  const name = matchGroup(row, /\|name=\[\[(?<name>.*?)/v);
-  const binomial = matchGroup(row, /\|binomial=(?<binomial>.*?)\n/v);
-  const fileName = matchGroup(row, /\|image=File:(?<fileName>[^\n]+)/v);
-  const range = matchGroup(row, /\|range=(?<range>.*?)\s*\|range-image=/v);
-
-  if (name === undefined || binomial === undefined || range === undefined) {
-    throw new Error('Invalid bear entry received');
-  }
-
-  return {
-    name,
-    binomial: binomial.trim(),
-    fileName: fileName === undefined ? null : fileName.trim(),
-    range: range.trim(),
-  };
-}
-
-function matchGroup(row: string, regex: RegExp): string | undefined {
-  const groups = regex.exec(row)?.groups;
-  return groups === undefined
-    ? undefined
-    : Object.values(groups)[FIRST_ITEM_INDEX];
-}
-
-async function loadBearImage(
-  bear: Bear,
-  signal?: AbortSignal
-): Promise<BearWithImage> {
-  const { fileName } = bear;
-
-  if (fileName === null || fileName === '') {
-    return { ...bear, image: PLACEHOLDER_IMAGE };
-  }
-
-  try {
-    const image = await fetchImageUrl(fileName, signal);
-    return { ...bear, image };
-  } catch (error) {
-    signal?.throwIfAborted();
-    return { ...bear, image: PLACEHOLDER_IMAGE };
-  }
+function getErrorMessage(data: unknown): string {
+  if (
+    typeof data === 'object' &&
+    data !== null &&
+    'message' in data &&
+    typeof data.message === 'string'
+  )
+    return data.message;
+  return 'Could not load bears.';
 }

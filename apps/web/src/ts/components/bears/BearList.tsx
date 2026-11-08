@@ -25,9 +25,9 @@ export default function BearList({ query }: BearListProps): JSX.Element {
         )}
         {state.status === 'success' &&
           state.bears.map((bear) => (
-            <div key={bear.binomial}>
+            <div key={bear.id}>
               <BearCard bear={bear} query={query} />
-              <Link to={`/bears/${encodeURIComponent(bear.binomial)}${search}`}>
+              <Link to={`/bears/${encodeURIComponent(bear.id)}${search}`}>
                 <Highlight
                   query={query}
                 >{`Details for ${bear.name}`}</Highlight>
