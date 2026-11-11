@@ -548,3 +548,38 @@ curl -i http://localhost:3000/api/debug/error
 ```
 
 Expected: `500 Internal Server Error` with a generic detail, without a stack trace or internal error message.
+
+### Commands to test Task 5
+
+**1. Start the API with an intentionally wrong allowed origin:**
+
+```sh
+CORS_ORIGINS=http://localhost:9999 npm run dev -w apps/api
+```
+
+**2. In another terminal, build and preview React with direct API calls:**
+
+```sh
+VITE_API_URL=http://localhost:3000 npm run dev -w apps/web -- --port 4173
+```
+
+**3. Restart the API with the correct allowed origin:**
+
+```sh
+CORS_ORIGINS=http://localhost:4173 npm run dev -w apps/api
+```
+
+### Theory
+
+Who enforces CORS? Simple vs preflighted requests? Why no `*` with credentials,
+and why does a BFF make most CORS problems disappear?
+
+### Answer
+
+CORS is enforced by the browser, while the server defines which origins are allowed.
+
+Simple requests, such as GET, are sent directly. Preflighted requests first send an OPTIONS request to check permissions, for example before a DELETE or a POST with JSON.
+
+The wildcard `*` cannot be used with credentials because the server must explicitly specify the allowed origin when cookies or other credentials are included.
+
+A BFF reduces CORS problems because the browser communicates with the backend through the same origin using a proxy. The BFF then handles external API requests server-side, where browser CORS restrictions do not apply.

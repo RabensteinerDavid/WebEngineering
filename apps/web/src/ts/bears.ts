@@ -1,4 +1,5 @@
 import { checkResponse } from './api/problem';
+import { apiUrl } from './api/url';
 import type { BearWithImage } from './models/bear';
 
 export const PLACEHOLDER_IMAGE = '/media/placeholder.png';
@@ -16,7 +17,7 @@ export async function loadBears(
 ): Promise<BearWithImage[]> {
   const url =
     id === undefined ? '/api/bears' : `/api/bears/${encodeURIComponent(id)}`;
-  const response = await fetch(url, { signal: signal ?? null });
+  const response = await fetch(apiUrl(url), { signal: signal ?? null });
   await checkResponse(response);
   const data: unknown = await response.json();
   const bears: unknown = id === undefined ? data : [data];

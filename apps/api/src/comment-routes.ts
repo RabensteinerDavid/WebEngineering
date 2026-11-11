@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Router } from 'express';
-import { z } from 'zod';
+import { z } from './zod.js';
 import { loadBears } from './bears.js';
 import { NotFoundError, ValidationError } from './errors.js';
 
@@ -12,16 +12,18 @@ const maxTextLength = 2000;
 const created = 201;
 const noContent = 204;
 
-const newCommentSchema = z.object({
+export const newCommentSchema = z.object({
   author: z.string().trim().min(minimumLength).max(maxAuthorLength),
   text: z.string().trim().min(minimumLength).max(maxTextLength),
 });
 
-type Comment = z.infer<typeof newCommentSchema> & {
-  id: string;
-  bearId: string;
-  createdAt: string;
-};
+export const commentSchema = newCommentSchema.extend({
+  id: z.uuid(),
+  bearId: z.string(),
+  createdAt: z.iso.datetime(),
+});
+
+type Comment = z.infer<typeof commentSchema>;
 
 const comments = new Map<string, Comment>();
 

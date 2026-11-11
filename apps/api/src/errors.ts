@@ -1,3 +1,4 @@
+import { z } from './zod.js';
 import { STATUS_CODES } from 'node:http';
 import { randomUUID } from 'node:crypto';
 import type { ErrorRequestHandler, RequestHandler } from 'express';
@@ -8,10 +9,17 @@ const badGateway = 502;
 const gatewayTimeout = 504;
 const internalError = 500;
 
-interface FieldError {
-  field: string;
-  message: string;
-}
+const fieldErrorSchema = z.object({ field: z.string(), message: z.string() });
+type FieldError = z.infer<typeof fieldErrorSchema>;
+
+export const problemSchema = z.object({
+  type: z.literal('about:blank'),
+  title: z.string(),
+  status: z.number().int(),
+  detail: z.string(),
+  instance: z.string(),
+  errors: z.array(fieldErrorSchema).optional(),
+});
 
 export class HttpError extends Error {
   constructor(

@@ -3,6 +3,9 @@ import { requestLogger, errorHandler, NotFoundError } from './errors.js';
 import { bearRoutes } from './bear-routes.js';
 import { commentRoutes } from './comment-routes.js';
 import { readFileSync } from 'node:fs';
+import { allowCors } from './cors.js';
+import swaggerUi from 'swagger-ui-express';
+import { createOpenApiDocument } from './openapi.js';
 
 const app = express();
 const port = 3000;
@@ -20,6 +23,7 @@ if (
 const { version } = packageInfo;
 
 app.use(requestLogger);
+app.use(allowCors);
 
 app.get('/health', (_request, response) => {
   response.json({ status: 'ok', version, uptime: process.uptime() });
@@ -28,6 +32,12 @@ app.get('/health', (_request, response) => {
 app.use(express.json());
 app.use('/api/bears', bearRoutes);
 app.use('/api', commentRoutes);
+
+const openApiDocument = createOpenApiDocument(version);
+app.get('/api/openapi.json', (_request, response) => {
+  response.json(openApiDocument);
+});
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
 // Demonstrates the central error handler for Task 4.
 app.get('/api/debug/error', () => {
