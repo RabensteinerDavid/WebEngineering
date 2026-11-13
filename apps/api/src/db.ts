@@ -14,3 +14,7 @@ pool.on('error', (error) => {
 });
 
 export const db = drizzle(pool);
+
+export async function checkDatabase(): Promise<void> {
+  await pool.query('SELECT 1');
+}

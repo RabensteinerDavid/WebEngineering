@@ -1,4 +1,5 @@
-import { pool } from './db.js';
+import { bearRepository, commentRepository } from './postgres-repositories.js';
+import { checkDatabase } from './db.js';
 import express from 'express';
 import {
   requestLogger,
@@ -6,8 +7,8 @@ import {
   HttpError,
   NotFoundError,
 } from './errors.js';
-import { bearRoutes } from './bear-routes.js';
-import { commentRoutes } from './comment-routes.js';
+import { createBearRoutes } from './bear-routes.js';
+import { createCommentRoutes } from './comment-routes.js';
 import { readFileSync } from 'node:fs';
 import { allowCors } from './cors.js';
 import swaggerUi from 'swagger-ui-express';
@@ -38,7 +39,7 @@ app.get('/health', (_request, response) => {
 const serviceUnavailable = 503;
 app.get('/health/ready', async (_request, response) => {
   try {
-    await pool.query('SELECT 1');
+    await checkDatabase();
   } catch (error) {
     throw new HttpError(
       serviceUnavailable,
@@ -51,8 +52,8 @@ app.get('/health/ready', async (_request, response) => {
 });
 
 app.use(express.json());
-app.use('/api/bears', bearRoutes);
-app.use('/api', commentRoutes);
+app.use('/api/bears', createBearRoutes(bearRepository));
+app.use('/api', createCommentRoutes(bearRepository, commentRepository));
 
 const openApiDocument = createOpenApiDocument(version);
 app.get('/api/openapi.json', (_request, response) => {

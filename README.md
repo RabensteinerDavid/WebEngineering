@@ -630,3 +630,13 @@ Why migrations instead of creating tables from code at startup? What does forwar
 **Migrations.** A versioned SQL migration brings every environment through the same schema changes. Creating tables at startup cannot update an existing table. Forward-only means an applied migration stays as written and a correction gets a new migration. If two branches generate migration 0003, their journals and snapshots disagree. Rebase and regenerate the unapplied migration against the merged history.
 
 **Keys and indexes.** A bear's slug is a natural key because it already identifies the bear in URLs. A comment has no stable natural identifier, so PostgreSQL generates a UUID as its surrogate key. The foreign key links each comment to a bear and deletes its comments when the bear is deleted. The composite index on (bear_id, created_at, id) supports listing one bear's comments in a stable time order.
+
+#### Task 3
+
+### Theory
+
+What does the repository hide, and what does it cost? Explain the N+1 problem using "comments for all bears" and show how your repository avoids it.
+
+### Answer
+
+A repository hides storage details such as column names, query syntax and timestamp conversion. The cost is maintaining the interfaces and keeping both implementations consistent. An N+1 query would load all bears once and then query comments separately for each of N bears. The current UI asks for comments for the selected bear only. Its endpoint looks up that bear by ID and fetches its comments in one filtered query. A future view showing comments for all bears should use one join or one batched comment query.

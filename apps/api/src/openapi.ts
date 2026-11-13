@@ -5,7 +5,7 @@ import {
   type ResponseConfig,
 } from '@asteasolutions/zod-to-openapi';
 import { bearSchema } from './bears.js';
-import { commentSchema, newCommentSchema } from './comment-routes.js';
+import { commentSchema, newCommentSchema } from './comments.js';
 import { problemSchema } from './errors.js';
 
 const registry = new OpenAPIRegistry();
