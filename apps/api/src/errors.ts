@@ -5,8 +5,6 @@ import type { ErrorRequestHandler, RequestHandler } from 'express';
 
 const badRequest = 400;
 const notFound = 404;
-const badGateway = 502;
-const gatewayTimeout = 504;
 const internalError = 500;
 
 const fieldErrorSchema = z.object({ field: z.string(), message: z.string() });
@@ -41,19 +39,6 @@ export class ValidationError extends HttpError {
 export class NotFoundError extends HttpError {
   constructor(detail: string) {
     super(notFound, detail);
-  }
-}
-
-export class UpstreamError extends HttpError {
-  constructor(timedOut = false, cause?: unknown) {
-    super(
-      timedOut ? gatewayTimeout : badGateway,
-      timedOut
-        ? 'Wikipedia took too long to respond.'
-        : 'Could not load bear data from Wikipedia.',
-      [],
-      cause
-    );
   }
 }
 

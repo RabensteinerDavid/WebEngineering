@@ -4,7 +4,6 @@ const httpUrl = z.url({ protocol: /^https?$/v });
 
 const envSchema = z.object({
   DATABASE_URL: z.url({ protocol: /^postgres(?:ql)?$/v }),
-  WIKIPEDIA_API_URL: httpUrl.default('https://en.wikipedia.org/w/api.php'),
   CORS_ORIGINS: z
     .string()
     .default('http://localhost:4173')

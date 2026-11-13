@@ -532,7 +532,7 @@ curl -i http://localhost:3000/api/does-not-exist
 
 Expected: `404 Not Found`.
 
-**502 Bad Gateway (Wikipedia unavailable):**
+**502 Bad Gateway (Wikipedia unavailable, Playground 4 only):**
 
 ```sh
 WIKIPEDIA_API_URL=https://falsche.url/w/api.php npm run dev
@@ -611,3 +611,22 @@ Liveness versus readiness: who uses each, and what goes wrong if the readiness c
 **Liveness** tells an orchestrator whether the API process responds. **Readiness** tells a load balancer whether to send it traffic. Readiness runs `SELECT 1` to check the database. Adding optional services to this check could take healthy API instances out of rotation during an unrelated outage.
 
 The API shares one connection pool. Requests reuse connections, avoiding the cost of connecting each time. When the pool is full, requests wait. Its size depends on available database connections, CPU, memory and how many API instances share them.
+
+#### Task 2
+
+```sh
+docker compose up -d --wait db
+npm run db:migrate
+npm run db:seed
+npm run dev
+```
+
+### Theory
+
+Why migrations instead of creating tables from code at startup? What does forward-only mean, and what goes wrong when two branches both create migration 0003? Natural versus surrogate key: when is which appropriate?
+
+### Answer
+
+**Migrations.** A versioned SQL migration brings every environment through the same schema changes. Creating tables at startup cannot update an existing table. Forward-only means an applied migration stays as written and a correction gets a new migration. If two branches generate migration 0003, their journals and snapshots disagree. Rebase and regenerate the unapplied migration against the merged history.
+
+**Keys and indexes.** A bear's slug is a natural key because it already identifies the bear in URLs. A comment has no stable natural identifier, so PostgreSQL generates a UUID as its surrogate key. The foreign key links each comment to a bear and deletes its comments when the bear is deleted. The composite index on (bear_id, created_at, id) supports listing one bear's comments in a stable time order.

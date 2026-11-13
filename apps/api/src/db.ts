@@ -1,3 +1,4 @@
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { env } from './env.js';
 
@@ -11,3 +12,5 @@ export const pool = new Pool({
 pool.on('error', (error) => {
   process.stderr.write(`Database connection error: ${error.message}\n`);
 });
+
+export const db = drizzle(pool);

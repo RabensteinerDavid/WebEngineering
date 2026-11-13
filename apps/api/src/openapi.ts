@@ -70,11 +70,6 @@ const serverErrors = {
     'Unexpected server error; no internal details are exposed.'
   ),
 };
-const upstreamErrors = {
-  ...serverErrors,
-  '502': problemResponse('Wikipedia unavailable or returned invalid data.'),
-  '504': problemResponse('Wikipedia request timed out.'),
-};
 const notFound = problemResponse('Requested resource not found.');
 
 registry.registerPath({
@@ -94,7 +89,7 @@ registry.registerPath({
   request: { headers: requestHeaders },
   responses: {
     '200': jsonResponse('Bears in Wikipedia order.', z.array(bear)),
-    ...upstreamErrors,
+    ...serverErrors,
   },
 });
 registry.registerPath({
@@ -105,7 +100,7 @@ registry.registerPath({
   responses: {
     '200': jsonResponse('Requested bear.', bear),
     '404': notFound,
-    ...upstreamErrors,
+    ...serverErrors,
   },
 });
 registry.registerPath({
@@ -116,7 +111,7 @@ registry.registerPath({
   responses: {
     '200': jsonResponse('Comments for this bear.', z.array(comment)),
     '404': notFound,
-    ...upstreamErrors,
+    ...serverErrors,
   },
 });
 registry.registerPath({
@@ -143,7 +138,7 @@ registry.registerPath({
       validationProblem
     ),
     '404': notFound,
-    ...upstreamErrors,
+    ...serverErrors,
   },
 });
 registry.registerPath({
