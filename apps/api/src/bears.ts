@@ -1,3 +1,4 @@
+import { env } from './env.js';
 import { z } from './zod.js';
 import { UpstreamError } from './errors.js';
 
@@ -41,9 +42,7 @@ async function fetchWikipedia(
   params: Record<string, string>
 ): Promise<unknown> {
   try {
-    const url = new URL(
-      process.env.WIKIPEDIA_API_URL ?? 'https://en.wikipedia.org/w/api.php'
-    );
+    const url = new URL(env.WIKIPEDIA_API_URL);
     url.search = new URLSearchParams({ ...params, format: 'json' }).toString();
     const response = await fetch(url, {
       headers: { 'User-Agent': userAgent },

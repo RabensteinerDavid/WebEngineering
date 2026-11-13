@@ -583,3 +583,31 @@ Simple requests, such as GET, are sent directly. Preflighted requests first send
 The wildcard `*` cannot be used with credentials because the server must explicitly specify the allowed origin when cookies or other credentials are included.
 
 A BFF reduces CORS problems because the browser communicates with the backend through the same origin using a proxy. The BFF then handles external API requests server-side, where browser CORS restrictions do not apply.
+
+## Playground 5 
+
+#### Task 1
+
+Start the stack and wait for PostgreSQL to accept connections:
+
+```sh
+docker compose up -d --build --wait
+curl -i http://localhost:3000/health/ready  # 200
+docker compose stop db
+curl -i http://localhost:3000/health/ready  # 503 application/problem+json
+curl -i http://localhost:3000/health        # 200
+docker compose up -d --wait db
+curl -i http://localhost:3000/health/ready  # 200
+```
+
+For local development use `docker compose up -d --wait db` and `npm run dev`.
+
+### Theory
+
+Liveness versus readiness: who uses each, and what goes wrong if the readiness check includes too many dependencies? Why is a pool necessary, and what limits its size?
+
+### Answer
+
+**Liveness** tells an orchestrator whether the API process responds. **Readiness** tells a load balancer whether to send it traffic. Readiness runs `SELECT 1` to check the database. Adding optional services to this check could take healthy API instances out of rotation during an unrelated outage.
+
+The API shares one connection pool. Requests reuse connections, avoiding the cost of connecting each time. When the pool is full, requests wait. Its size depends on available database connections, CPU, memory and how many API instances share them.

@@ -1,5 +1,11 @@
+import { pool } from './db.js';
 import express from 'express';
-import { requestLogger, errorHandler, NotFoundError } from './errors.js';
+import {
+  requestLogger,
+  errorHandler,
+  HttpError,
+  NotFoundError,
+} from './errors.js';
 import { bearRoutes } from './bear-routes.js';
 import { commentRoutes } from './comment-routes.js';
 import { readFileSync } from 'node:fs';
@@ -27,6 +33,21 @@ app.use(allowCors);
 
 app.get('/health', (_request, response) => {
   response.json({ status: 'ok', version, uptime: process.uptime() });
+});
+
+const serviceUnavailable = 503;
+app.get('/health/ready', async (_request, response) => {
+  try {
+    await pool.query('SELECT 1');
+  } catch (error) {
+    throw new HttpError(
+      serviceUnavailable,
+      'Database is unavailable.',
+      [],
+      error
+    );
+  }
+  response.json({ status: 'ok' });
 });
 
 app.use(express.json());

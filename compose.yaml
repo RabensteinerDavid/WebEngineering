@@ -1,5 +1,26 @@
 services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: bears
+      POSTGRES_DB: bears
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bears}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "bears", "-d", "bears"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api:
+    environment:
+      DATABASE_URL: postgres://bears:${POSTGRES_PASSWORD:-bears}@db:5432/bears
+    depends_on:
+      db:
+        condition: service_healthy
     build:
       context: .
       dockerfile: apps/api/Dockerfile
@@ -14,3 +35,6 @@ services:
       - "8080:80"
     depends_on:
       - api
+
+volumes:
+  postgres_data:
