@@ -20,18 +20,30 @@ export default function Comments({
   const [name, setName] = useState('');
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [retry, setRetry] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const canSubmit = name.trim() !== '' && comment.trim() !== '';
 
   useEffect(() => {
     const controller = new AbortController();
 
+    setLoading(true);
     async function fetchComments(): Promise<void> {
       try {
-        const data = await loadComments(bearId, controller.signal);
-        if (!controller.signal.aborted) setComments(data);
+        const data = await loadComments(bearId, controller.signal, cursor);
+        if (controller.signal.aborted) return;
+        setComments((previous) =>
+          cursor === null ? data.items : [...previous, ...data.items]
+        );
+        setNextCursor(data.nextCursor);
+        setError('');
       } catch {
         if (!controller.signal.aborted) setError('Could not load comments.');
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
 
@@ -39,12 +51,12 @@ export default function Comments({
     return () => {
       controller.abort();
     };
-  }, [bearId]);
+  }, [bearId, cursor, retry]);
 
   async function handleSubmit(): Promise<void> {
     try {
       const saved = await addComment(bearId, name.trim(), comment.trim());
-      setComments((previous) => [...previous, saved]);
+      setComments((previous) => [saved, ...previous]);
       setName('');
       setComment('');
       setError('');
@@ -132,7 +144,7 @@ export default function Comments({
             />
           </div>
           <div>
-            <input type="submit" value="Submit comment" />
+            <input type="submit" disabled={loading} value="Submit comment" />
           </div>
         </form>
 
@@ -165,6 +177,18 @@ export default function Comments({
             </li>
           ))}
         </ul>
+        {nextCursor !== null && (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => {
+              if (cursor === nextCursor) setRetry((value) => !value);
+              else setCursor(nextCursor);
+            }}
+          >
+            Load more comments
+          </button>
+        )}
       </div>
     </section>
   );

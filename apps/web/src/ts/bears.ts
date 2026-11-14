@@ -13,10 +13,13 @@ function isBear(value: unknown): value is BearWithImage {
 
 export async function loadBears(
   signal?: AbortSignal,
-  id?: string
+  id?: string,
+  query = ''
 ): Promise<BearWithImage[]> {
   const url =
-    id === undefined ? '/api/bears' : `/api/bears/${encodeURIComponent(id)}`;
+    id === undefined
+      ? `/api/bears?q=${encodeURIComponent(query)}`
+      : `/api/bears/${encodeURIComponent(id)}`;
   const response = await fetch(apiUrl(url), { signal: signal ?? null });
   await checkResponse(response);
   const data: unknown = await response.json();

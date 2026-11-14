@@ -1,12 +1,19 @@
 import { Router } from 'express';
 import type { BearRepository } from './repositories.js';
-import { NotFoundError } from './errors.js';
+import { NotFoundError, ValidationError } from './errors.js';
 
 export function createBearRoutes(bears: BearRepository): Router {
   const bearRoutes = Router();
 
-  bearRoutes.get('/', async (_request, response) => {
-    response.json(await bears.list());
+  bearRoutes.get('/', async (request, response) => {
+    const {
+      query: { q },
+    } = request;
+    if (q !== undefined && typeof q !== 'string')
+      throw new ValidationError('Invalid search.', [
+        { field: 'q', message: 'Expected one search string.' },
+      ]);
+    response.json(await bears.list(q));
   });
 
   bearRoutes.get('/:id', async (request, response) => {

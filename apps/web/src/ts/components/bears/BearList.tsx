@@ -9,7 +9,7 @@ interface BearListProps {
 }
 
 export default function BearList({ query }: BearListProps): JSX.Element {
-  const state = useBears();
+  const state = useBears(undefined, query);
   const { search } = useLocation();
 
   return (

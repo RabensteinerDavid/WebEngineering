@@ -1,9 +1,12 @@
-import { eq } from 'drizzle-orm';
+import { makePage } from './pagination.js';
+import { and, desc, eq, getTableColumns, sql } from 'drizzle-orm';
 import { db } from './db.js';
 import { bears, comments } from './schema.js';
 import { commentSchema, type Comment } from './comments.js';
 import type { BearRepository, CommentRepository } from './repositories.js';
 
+const lastVisibleRow = -2;
+const extraRow = 1;
 const bearFields = {
   id: bears.id,
   name: bears.name,
@@ -13,10 +16,11 @@ const bearFields = {
 };
 
 export const bearRepository: BearRepository = {
-  async list() {
+  async list(query = '') {
     return await db
       .select(bearFields)
       .from(bears)
+      .where(sql`strpos(lower(${bears.name}), lower(${query})) > 0`)
       .orderBy(bears.position, bears.id);
   },
   async findById(id) {
@@ -29,17 +33,34 @@ export const bearRepository: BearRepository = {
 };
 
 function toComment(row: typeof comments.$inferSelect): Comment {
-  return { ...row, createdAt: row.createdAt.toISOString() };
+  const { id, bearId, author, text, createdAt } = row;
+  return { id, bearId, author, text, createdAt: createdAt.toISOString() };
 }
 
 export const commentRepository: CommentRepository = {
-  async listByBear(bearId) {
+  async listByBear(bearId, limit, cursor) {
+    // Preserve PostgreSQL microseconds in the cursor; JavaScript Date only stores milliseconds.
     const rows = await db
-      .select()
+      .select({
+        ...getTableColumns(comments),
+        cursorTime: sql<string>`to_char(${comments.createdAt} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`,
+      })
       .from(comments)
-      .where(eq(comments.bearId, bearId))
-      .orderBy(comments.createdAt, comments.id);
-    return rows.map(toComment);
+      .where(
+        and(
+          eq(comments.bearId, bearId),
+          cursor === undefined
+            ? undefined
+            : sql`(${comments.createdAt}, ${comments.id}) < (${cursor.createdAt}::timestamptz, ${cursor.id}::uuid)`
+        )
+      )
+      .orderBy(desc(comments.createdAt), desc(comments.id))
+      .limit(limit + extraRow);
+    return makePage(
+      rows.map(toComment),
+      limit,
+      rows.at(lastVisibleRow)?.cursorTime
+    );
   },
   async create(bearId, input) {
     const [row] = await db

@@ -640,3 +640,69 @@ What does the repository hide, and what does it cost? Explain the N+1 problem us
 ### Answer
 
 A repository hides storage details such as column names, query syntax and timestamp conversion. The cost is maintaining the interfaces and keeping both implementations consistent. An N+1 query would load all bears once and then query comments separately for each of N bears. The current UI asks for comments for the selected bear only. Its endpoint looks up that bear by ID and fetches its comments in one filtered query. A future view showing comments for all bears should use one join or one batched comment query.
+
+### Playground 5 — Task 4
+
+Search for bears by name (for example, panda):
+
+```sh
+curl -i 'http://localhost:3000/api/bears?q=panda'
+```
+
+```sh
+curl 'http://localhost:3000/api/bears/u-arctos/comments?limit=2'
+# Replace TOKEN with nextCursor from the response.
+curl 'http://localhost:3000/api/bears/u-arctos/comments?limit=2&cursor=TOKEN'
+```
+
+```sh
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bears -d bears < apps/api/scripts/measure-comments.sql
+```
+
+The benchmark uses a temporary table with 100,000 comments to compare query performance before and after creating the composite B-tree index. The permanent index on the comments table is defined in the Drizzle migration.
+
+```text
+CREATE TABLE
+INSERT 0 100000
+ANALYZE
+PREPARE
+ Limit  (cost=2675.27..2675.32 rows=21 width=81) (actual time=16.605..16.608 rows=21.00 loops=1)
+   Buffers: local hit=8 read=1022 written=1014
+   ->  Sort  (cost=2675.27..2706.19 rows=12367 width=81) (actual time=16.602..16.603 rows=21.00 loops=1)
+         Sort Key: created_at DESC, id DESC
+         Sort Method: top-N heapsort  Memory: 30kB
+         Buffers: local hit=8 read=1022 written=1014
+         ->  Seq Scan on comment_sample  (cost=0.00..2341.84 rows=12367 width=81) (actual time=0.307..14.579 rows=12500.00 loops=1)
+               Filter: (bear_id = 'bear-0'::text)
+               Rows Removed by Filter: 87500
+               Buffers: local hit=8 read=1022 written=1014
+ Planning:
+   Buffers: shared hit=46 read=5
+ Planning Time: 0.304 ms
+ Execution Time: 16.624 ms
+CREATE INDEX
+ Limit  (cost=0.42..8.34 rows=21 width=81) (actual time=0.029..0.044 rows=21.00 loops=1)
+   Buffers: local hit=2 read=3
+   ->  Index Scan Backward using sample_bear_created_idx on comment_sample  (cost=0.42..4668.14 rows=12367 width=81) (actual time=0.028..0.041 rows=21.00 loops=1)
+         Index Cond: (bear_id = 'bear-0'::text)
+         Index Searches: 1
+         Buffers: local hit=2 read=3
+ Planning:
+   Buffers: shared hit=40, local read=1
+ Planning Time: 0.394 ms
+ Execution Time: 0.063 ms
+```
+
+### Theory
+
+Why does offset pagination get slower and skip or repeat rows, and how does a cursor avoid that? What is a
+B-tree index, why does the column order in a composite index matter, and why may PostgreSQL ignore an index on a
+small table?
+
+### Answer
+
+Offset pagination gets slower because the database must scan and skip rows. Inserts or deletes can shift positions, causing skipped or duplicate results. **Cursor pagination** avoids this by continuing from the last retrieved row using a stable ordering.
+
+A **B-tree index** is a sorted tree structure that speeds up searches and sorting. Column order matters in composite indexes because PostgreSQL can use them most efficiently when queries filter on the leading columns.
+
+PostgreSQL may ignore an index on small tables because a **sequential scan** can be faster than using the index.

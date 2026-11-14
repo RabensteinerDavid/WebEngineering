@@ -21,20 +21,31 @@ function isComment(value: unknown): value is Comment {
 
 export async function loadComments(
   bearId: string,
-  signal: AbortSignal
-): Promise<Comment[]> {
+  signal: AbortSignal,
+  cursor: string | null
+): Promise<{ items: Comment[]; nextCursor: string | null }> {
   const response = await fetch(
-    apiUrl(`/api/bears/${encodeURIComponent(bearId)}/comments`),
+    apiUrl(
+      `/api/bears/${encodeURIComponent(bearId)}/comments${cursor === null ? '' : `?cursor=${encodeURIComponent(cursor)}`}`
+    ),
     {
       signal,
     }
   );
   await checkResponse(response);
   const data: unknown = await response.json();
-  if (!Array.isArray(data) || !data.every(isComment)) {
+  if (
+    typeof data !== 'object' ||
+    data === null ||
+    !('items' in data) ||
+    !Array.isArray(data.items) ||
+    !data.items.every(isComment) ||
+    !('nextCursor' in data) ||
+    !(data.nextCursor === null || typeof data.nextCursor === 'string')
+  ) {
     throw new Error('Invalid comment data.');
   }
-  return data;
+  return { items: data.items, nextCursor: data.nextCursor };
 }
 
 export async function addComment(

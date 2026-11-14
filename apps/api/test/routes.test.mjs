@@ -45,21 +45,56 @@ test('comments belong to one bear and can be created, read and deleted', async (
   assert.equal(comment.bearId, entries[0].id);
 
   // Test 4: Verify that the created comment appears in the bear's comments.
-  assert.deepEqual(await (await fetch(collection)).json(), [comment]);
+  assert.deepEqual(await (await fetch(collection)).json(), {
+    items: [comment],
+    nextCursor: null,
+  });
 
   // Test 5: Verify that other bears do not contain this comment.
   assert.deepEqual(
     await (await fetch(base + '/bears/' + entries[1].id + '/comments')).json(),
-    []
+    { items: [], nextCursor: null }
   );
 
-  // Test 6: Retrieve the comment by its ID.
+  // Test 6: Create a second comment for pagination testing.
+  await fetch(collection, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ author: 'Test', text: 'Second' }),
+  });
+
+  // Test 7: Verify that the first page contains one item and a next cursor.
+  const first = await (await fetch(collection + '?limit=1')).json();
+  assert.equal(first.items.length, 1);
+  assert.ok(first.nextCursor);
+
+  // Test 8: Verify that the next page contains a different comment.
+  const second = await (
+    await fetch(collection + '?limit=1&cursor=' + first.nextCursor)
+  ).json();
+  assert.equal(second.items.length, 1);
+  assert.notEqual(first.items[0].id, second.items[0].id);
+
+  // Test 9: Verify that the last page has no next cursor.
+  assert.equal(second.nextCursor, null);
+
+  // Test 10: Verify that an invalid cursor returns HTTP 400.
+  assert.equal((await fetch(collection + '?cursor=bad')).status, 400);
+
+  // Test 11: Verify that bear search is case-insensitive.
+  const filtered = await (await fetch(base + '/bears?q=PANDA')).json();
+  assert.deepEqual(
+    filtered,
+    entries.filter((bear) => bear.name.toLowerCase().includes('panda'))
+  );
+
+  // Test 12: Retrieve the comment by its ID.
   const url = base + '/comments/' + comment.id;
   assert.deepEqual(await (await fetch(url)).json(), comment);
 
-  // Test 7: Delete the comment and verify the HTTP 204 status.
+  // Test 13: Delete the comment and verify the HTTP 204 status.
   assert.equal((await fetch(url, { method: 'DELETE' })).status, 204);
 
-  // Test 8: Verify that the deleted comment returns HTTP 404.
+  // Test 14: Verify that the deleted comment returns HTTP 404.
   assert.equal((await fetch(url)).status, 404);
 });

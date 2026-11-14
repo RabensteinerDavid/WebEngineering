@@ -10,7 +10,7 @@ type BearLoadState =
   | { status: 'empty' }
   | { status: 'error'; message: string };
 
-export default function useBears(id?: string): BearLoadState {
+export default function useBears(id?: string, query = ''): BearLoadState {
   const [state, setState] = useState<BearLoadState>({ status: 'loading' });
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function useBears(id?: string): BearLoadState {
 
     async function fetchBears(): Promise<void> {
       try {
-        const bears = await loadBears(signal, id);
+        const bears = await loadBears(signal, id, query);
         if (signal.aborted) return;
         setState(
           bears.length === EMPTY_BEAR_COUNT
@@ -43,7 +43,7 @@ export default function useBears(id?: string): BearLoadState {
     return () => {
       controller.abort();
     };
-  }, [id]);
+  }, [id, query]);
 
   return state;
 }

@@ -36,7 +36,7 @@ export default function BearDetail({ query }: BearDetailProps): JSX.Element {
               <Highlight query={query}>{bear.name}</Highlight>
             </h2>
             <BearCard bear={bear} query={query} />
-            <Comments bearId={bear.id} query={query} />
+            <Comments key={bear.id} bearId={bear.id} query={query} />
           </>
         )}
       </div>

@@ -1,3 +1,4 @@
+import { decodeCursor, pageQuery } from './pagination.js';
 import { Router } from 'express';
 import { newCommentSchema } from './comments.js';
 import { NotFoundError, ValidationError } from './errors.js';
@@ -19,7 +20,25 @@ export function createCommentRoutes(
       throw new NotFoundError('Bear not found.');
     }
 
-    response.json(await comments.listByBear(id));
+    const query = pageQuery.safeParse(request.query);
+    if (!query.success)
+      throw new ValidationError(
+        'Invalid pagination parameters.',
+        query.error.issues.map((issue) => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+        }))
+      );
+    const {
+      data: { limit, cursor },
+    } = query;
+    response.json(
+      await comments.listByBear(
+        id,
+        limit,
+        cursor === undefined ? undefined : decodeCursor(cursor)
+      )
+    );
   });
 
   commentRoutes.post('/bears/:id/comments', async (request, response) => {

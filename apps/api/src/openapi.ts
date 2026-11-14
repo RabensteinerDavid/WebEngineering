@@ -1,3 +1,4 @@
+import { pageQuery } from './pagination.js';
 import { z } from './zod.js';
 import {
   OpenAPIRegistry,
@@ -85,8 +86,11 @@ registry.registerPath({
 registry.registerPath({
   method: 'get',
   path: '/api/bears',
-  summary: 'List all bears',
-  request: { headers: requestHeaders },
+  summary: 'List bears by name',
+  request: {
+    headers: requestHeaders,
+    query: z.object({ q: z.string().optional() }),
+  },
   responses: {
     '200': jsonResponse('Bears in Wikipedia order.', z.array(bear)),
     ...serverErrors,
@@ -106,10 +110,14 @@ registry.registerPath({
 registry.registerPath({
   method: 'get',
   path: '/api/bears/{id}/comments',
-  summary: 'List comments for a bear',
-  request: { params: bearParams, headers: requestHeaders },
+  summary: 'List comments for a bear, newest first',
+  request: { params: bearParams, headers: requestHeaders, query: pageQuery },
   responses: {
-    '200': jsonResponse('Comments for this bear.', z.array(comment)),
+    '200': jsonResponse(
+      'Comments for this bear.',
+      z.object({ items: z.array(comment), nextCursor: z.string().nullable() })
+    ),
+    '400': problemResponse('Invalid pagination parameters.', validationProblem),
     '404': notFound,
     ...serverErrors,
   },
