@@ -1,5 +1,5 @@
 import { makePage } from './pagination.js';
-import { and, desc, eq, getTableColumns, sql } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
 import { db } from './db.js';
 import { bears, comments } from './schema.js';
 import { commentSchema, type Comment } from './comments.js';
@@ -33,8 +33,16 @@ export const bearRepository: BearRepository = {
 };
 
 function toComment(row: typeof comments.$inferSelect): Comment {
-  const { id, bearId, author, text, createdAt } = row;
-  return { id, bearId, author, text, createdAt: createdAt.toISOString() };
+  const { id, bearId, author, text, createdAt, reportCount, hiddenAt } = row;
+  return {
+    id,
+    bearId,
+    author,
+    text,
+    reportCount,
+    hiddenAt: hiddenAt?.toISOString() ?? null,
+    createdAt: createdAt.toISOString(),
+  };
 }
 
 export const commentRepository: CommentRepository = {
@@ -49,6 +57,7 @@ export const commentRepository: CommentRepository = {
       .where(
         and(
           eq(comments.bearId, bearId),
+          isNull(comments.hiddenAt),
           cursor === undefined
             ? undefined
             : sql`(${comments.createdAt}, ${comments.id}) < (${cursor.createdAt}::timestamptz, ${cursor.id}::uuid)`
@@ -73,6 +82,19 @@ export const commentRepository: CommentRepository = {
   async findById(id) {
     if (!commentSchema.shape.id.safeParse(id).success) return undefined;
     const [row] = await db.select().from(comments).where(eq(comments.id, id));
+    return row === undefined ? undefined : toComment(row);
+  },
+  async incrementReports(id, hideAt) {
+    if (!commentSchema.shape.id.safeParse(id).success) return undefined;
+    const nextCount = sql`${comments.reportCount} + 1`;
+    const [row] = await db
+      .update(comments)
+      .set({
+        reportCount: nextCount,
+        hiddenAt: sql`CASE WHEN ${nextCount} >= ${hideAt} THEN coalesce(${comments.hiddenAt}, now()) ELSE ${comments.hiddenAt} END`,
+      })
+      .where(eq(comments.id, id))
+      .returning();
     return row === undefined ? undefined : toComment(row);
   },
   async remove(id) {

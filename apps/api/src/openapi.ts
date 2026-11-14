@@ -161,6 +161,17 @@ registry.registerPath({
   },
 });
 registry.registerPath({
+  method: 'post',
+  path: '/api/comments/{commentId}/report',
+  summary: 'Report a comment; the third report hides it from the list',
+  request: { params: commentParams, headers: requestHeaders },
+  responses: {
+    '200': jsonResponse('Updated comment.', comment),
+    '404': notFound,
+    ...serverErrors,
+  },
+});
+registry.registerPath({
   method: 'delete',
   path: '/api/comments/{commentId}',
   summary: 'Delete a comment',

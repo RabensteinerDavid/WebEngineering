@@ -1,3 +1,4 @@
+import { reportComment } from './report-service.js';
 import { decodeCursor, pageQuery } from './pagination.js';
 import { Router } from 'express';
 import { newCommentSchema } from './comments.js';
@@ -77,6 +78,13 @@ export function createCommentRoutes(
 
     response.json(comment);
   });
+
+  commentRoutes.post(
+    '/comments/:commentId/report',
+    async (request, response) => {
+      response.json(await reportComment(comments, request.params.commentId));
+    }
+  );
 
   commentRoutes.delete('/comments/:commentId', async (request, response) => {
     const deleted = await comments.remove(request.params.commentId);

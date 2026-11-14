@@ -15,7 +15,8 @@
     "prepare": "husky",
     "db:migrate": "npm run db:migrate -w apps/api",
     "db:seed": "npm run db:seed -w apps/api",
-    "test": "npm test -w apps/api"
+    "test": "npm test -w apps/api",
+    "report:storm": "npm run report:storm -w apps/api"
   },
   "lint-staged": {
     "apps/*/src/**/*": "prettier --write",

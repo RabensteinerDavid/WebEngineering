@@ -9,6 +9,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
+const initialReportCount = 0;
+
 export const bears = pgTable('bears', {
   id: text().primaryKey(),
   name: text().notNull(),
@@ -28,6 +30,8 @@ export const comments = pgTable(
     bearId: text('bear_id')
       .notNull()
       .references(() => bears.id, { onDelete: 'cascade' }),
+    reportCount: integer('report_count').notNull().default(initialReportCount),
+    hiddenAt: timestamp('hidden_at', { withTimezone: true }),
     author: text().notNull(),
     text: text().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
@@ -40,6 +44,7 @@ export const comments = pgTable(
       table.createdAt,
       table.id
     ),
+    check('report_count_nonnegative', sql`${table.reportCount} >= 0`),
     check('author_length', sql`char_length(${table.author}) between 1 and 80`),
     check('text_length', sql`char_length(${table.text}) between 1 and 2000`),
   ]

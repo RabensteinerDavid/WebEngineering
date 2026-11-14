@@ -92,9 +92,34 @@ test('comments belong to one bear and can be created, read and deleted', async (
   const url = base + '/comments/' + comment.id;
   assert.deepEqual(await (await fetch(url)).json(), comment);
 
-  // Test 13: Delete the comment and verify the HTTP 204 status.
+  // Set up a helper to report the comment.
+  const report = async () => {
+    const response = await fetch(url + '/report', { method: 'POST' });
+    assert.equal(response.status, 200);
+    return await response.json();
+  };
+
+  // Test 13: Verify that the first report does not hide the comment.
+  assert.equal((await report()).hiddenAt, null);
+
+  // Test 14: Verify that the second report does not hide the comment.
+  assert.equal((await report()).hiddenAt, null);
+
+  // Test 15: Verify that the third report hides the comment.
+  const hidden = await report();
+  assert.equal(hidden.reportCount, 3);
+  assert.ok(hidden.hiddenAt);
+
+  // Test 16: Verify that additional reports preserve the original hidden timestamp.
+  assert.equal((await report()).hiddenAt, hidden.hiddenAt);
+
+  // Test 17: Verify that hidden comments are excluded from the comment list.
+  const visible = await (await fetch(collection)).json();
+  assert.ok(visible.items.every((item) => item.id !== comment.id));
+
+  // Test 18: Delete the comment and verify the HTTP 204 status.
   assert.equal((await fetch(url, { method: 'DELETE' })).status, 204);
 
-  // Test 14: Verify that the deleted comment returns HTTP 404.
+  // Test 19: Verify that the deleted comment returns HTTP 404.
   assert.equal((await fetch(url)).status, 404);
 });

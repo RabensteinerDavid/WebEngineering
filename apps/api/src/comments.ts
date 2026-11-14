@@ -11,6 +11,8 @@ export const newCommentSchema = z.object({
 export const commentSchema = newCommentSchema.extend({
   id: z.uuid(),
   bearId: z.string(),
+  reportCount: z.number().int().nonnegative(),
+  hiddenAt: z.iso.datetime().nullable(),
   createdAt: z.iso.datetime(),
 });
 

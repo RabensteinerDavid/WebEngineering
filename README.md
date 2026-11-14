@@ -706,3 +706,51 @@ Offset pagination gets slower because the database must scan and skip rows. Inse
 A **B-tree index** is a sorted tree structure that speeds up searches and sorting. Column order matters in composite indexes because PostgreSQL can use them most efficiently when queries filter on the leading columns.
 
 PostgreSQL may ignore an index on small tables because a **sequential scan** can be faster than using the index.
+
+### Playground 5 — Task 5
+
+`POST /api/comments/:commentId/report` adds one report and returns the updated comment. The third report sets `hiddenAt`. Hidden comments disappear from the paginated list but remain available by ID so the final count can be inspected. Further reports increment the count and preserve the original hiding time.
+
+```sh
+curl -i -X POST http://localhost:3000/api/comments/:id/report
+```
+
+Run the comparison from the project root with the local database configured as in Task 2:
+
+```sh
+docker compose up -d --wait db
+npm run db:migrate
+npm run db:seed
+npm run report:storm
+```
+
+The storm starts a local HTTP server for each implementation, creates a temporary comment, sends 50 concurrent POST requests, reads the stored count by ID and deletes the demo comment. In one local run:
+
+| Implementation | Reports sent | Stored count |
+|---|---:|---:|
+| Naive read, increment in TypeScript, write | 50 | 5 |
+| Atomic SQL update | 50 | 50 |
+
+The naive result varies. Two requests can both read 4 and both write 5, losing one increment. Under PostgreSQL's default **read committed** isolation each statement sees committed data at the start of that statement. Separate reads and writes can still interleave, even inside a transaction. In the atomic version PostgreSQL locks the row during the update. A competing update waits and increments the latest value. The report service defines the whole operation as one atomic repository call. PostgreSQL wraps this single statement in an implicit transaction that updates both the count and the hiding timestamp.
+
+### Theory
+
+Explain ACID and the lost-update anomaly. What does PostgreSQL's default isolation level (read committed)
+guarantee, and what not? Compare pessimistic locking, atomic updates and optimistic concurrency with a version
+column.
+
+### Answer
+
+**ACID** stands for Atomicity (all or nothing), Consistency (valid data), Isolation (transactions do not interfere incorrectly), and Durability (committed changes persist).
+
+A **lost update** occurs when two transactions read the same value and overwrite each other's changes.
+
+PostgreSQL's default isolation level, **Read Committed**, prevents dirty reads but allows non-repeatable reads, phantom reads, and lost updates in read-modify-write operations.
+
+**Solutions:**
+
+- **Pessimistic locking:** Uses `SELECT FOR UPDATE` to lock rows, but may cause waiting.
+- **Atomic updates:** Uses `UPDATE ... SET count = count + 1` to safely modify values in one statement.
+- **Optimistic concurrency:** Uses a version column to detect conflicts. Failed updates must be retried.
+
+For incrementing a comment's report count, **atomic updates are usually the simplest solution**.

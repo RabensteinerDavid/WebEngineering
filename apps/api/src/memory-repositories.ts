@@ -4,6 +4,9 @@ import type { Bear } from './bears.js';
 import type { Comment } from './comments.js';
 import type { BearRepository, CommentRepository } from './repositories.js';
 
+const initialReportCount = 0;
+const oneReport = 1;
+
 export function createMemoryRepositories(entries: Bear[]): {
   bears: BearRepository;
   comments: CommentRepository;
@@ -26,6 +29,7 @@ export function createMemoryRepositories(entries: Bear[]): {
         const rows = [...comments.values()]
           .filter(
             (comment) =>
+              comment.hiddenAt === null &&
               comment.bearId === id &&
               (cursor === undefined ||
                 comment.createdAt < cursor.createdAt ||
@@ -42,6 +46,8 @@ export function createMemoryRepositories(entries: Bear[]): {
       create: async (bearId, input) => {
         const comment: Comment = {
           ...input,
+          reportCount: initialReportCount,
+          hiddenAt: null,
           bearId,
           id: randomUUID(),
           createdAt: new Date().toISOString(),
@@ -52,6 +58,15 @@ export function createMemoryRepositories(entries: Bear[]): {
       },
 
       findById: async (id) => await Promise.resolve(comments.get(id)),
+      async incrementReports(id, hideAt) {
+        const comment = comments.get(id);
+        if (comment !== undefined) {
+          comment.reportCount += oneReport;
+          if (comment.reportCount >= hideAt)
+            comment.hiddenAt ??= new Date().toISOString();
+        }
+        return await Promise.resolve(comment);
+      },
       remove: async (id) => await Promise.resolve(comments.delete(id)),
     },
   };

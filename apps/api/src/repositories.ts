@@ -15,5 +15,9 @@ export interface CommentRepository {
   ) => Promise<CommentPage>;
   create: (bearId: string, input: NewComment) => Promise<Comment>;
   findById: (id: string) => Promise<Comment | undefined>;
+  incrementReports: (
+    id: string,
+    hideAt: number
+  ) => Promise<Comment | undefined>;
   remove: (id: string) => Promise<boolean>;
 }
