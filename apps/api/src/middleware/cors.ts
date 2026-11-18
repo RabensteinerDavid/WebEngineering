@@ -1,6 +1,6 @@
 import cors from 'cors';
 
-import { env } from './env.js';
+import { env } from '../config/env.js';
 
 export const allowCors = cors({
   origin: env.CORS_ORIGINS,

@@ -1,6 +1,6 @@
-import type { Cursor, CommentPage } from './pagination.js';
-import type { Bear } from './bears.js';
-import type { Comment, NewComment } from './comments.js';
+import type { Cursor, CommentPage } from '../models/pagination.js';
+import type { Bear } from '../models/bears.js';
+import type { Comment, NewComment } from '../models/comments.js';
 
 export interface BearRepository {
   list: (query?: string) => Promise<Bear[]>;

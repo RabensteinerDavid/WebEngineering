@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import type { BearRepository } from './repositories.js';
-import { NotFoundError, ValidationError } from './errors.js';
+import type { BearRepository } from '../repositories/interfaces.js';
+import { NotFoundError, ValidationError } from '../errors.js';
 
 export function createBearRoutes(bears: BearRepository): Router {
   const bearRoutes = Router();

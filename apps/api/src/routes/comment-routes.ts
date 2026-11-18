@@ -1,9 +1,12 @@
-import { reportComment } from './report-service.js';
-import { decodeCursor, pageQuery } from './pagination.js';
+import { reportComment } from '../services/report-service.js';
+import { decodeCursor, pageQuery } from '../models/pagination.js';
 import { Router } from 'express';
-import { newCommentSchema } from './comments.js';
-import { NotFoundError, ValidationError } from './errors.js';
-import type { BearRepository, CommentRepository } from './repositories.js';
+import { newCommentSchema } from '../models/comments.js';
+import { NotFoundError, ValidationError } from '../errors.js';
+import type {
+  BearRepository,
+  CommentRepository,
+} from '../repositories/interfaces.js';
 
 const created = 201;
 const noContent = 204;

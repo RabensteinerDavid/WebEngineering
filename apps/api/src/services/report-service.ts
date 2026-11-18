@@ -1,6 +1,6 @@
-import type { CommentRepository } from './repositories.js';
-import type { Comment } from './comments.js';
-import { NotFoundError } from './errors.js';
+import type { CommentRepository } from '../repositories/interfaces.js';
+import type { Comment } from '../models/comments.js';
+import { NotFoundError } from '../errors.js';
 
 const hideAfterReports = 3;
 

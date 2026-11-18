@@ -1,4 +1,4 @@
-import { z } from './zod.js';
+import { z } from '../config/zod.js';
 const minimumLength = 1;
 const maxAuthorLength = 80;
 const maxTextLength = 2000;

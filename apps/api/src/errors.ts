@@ -1,4 +1,4 @@
-import { z } from './zod.js';
+import { z } from './config/zod.js';
 import { STATUS_CODES } from 'node:http';
 import { randomUUID } from 'node:crypto';
 import type { ErrorRequestHandler, RequestHandler } from 'express';

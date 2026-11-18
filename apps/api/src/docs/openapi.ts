@@ -1,13 +1,13 @@
-import { pageQuery } from './pagination.js';
-import { z } from './zod.js';
+import { pageQuery } from '../models/pagination.js';
+import { z } from '../config/zod.js';
 import {
   OpenAPIRegistry,
   OpenApiGeneratorV31,
   type ResponseConfig,
 } from '@asteasolutions/zod-to-openapi';
-import { bearSchema } from './bears.js';
-import { commentSchema, newCommentSchema } from './comments.js';
-import { problemSchema } from './errors.js';
+import { bearSchema } from '../models/bears.js';
+import { commentSchema, newCommentSchema } from '../models/comments.js';
+import { problemSchema } from '../errors.js';
 
 const registry = new OpenAPIRegistry();
 const bear = registry.register('Bear', bearSchema);

@@ -1,8 +1,8 @@
 // Deliberately unsafe example for the lost-update experiment.
 import { eq } from 'drizzle-orm';
-import { db } from '../src/db.ts';
-import { comments } from '../src/schema.ts';
-import { commentRepository } from '../src/postgres-repositories.ts';
+import { db } from '../src/db/client.ts';
+import { comments } from '../src/db/schema.ts';
+import { commentRepository } from '../src/repositories/postgres-repositories.ts';
 
 export const naiveRepository = {
   ...commentRepository,

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import express from 'express';
-import { createCommentRoutes } from '../src/comment-routes.ts';
+import { createCommentRoutes } from '../src/routes/comment-routes.ts';
 import {
   bearRepository,
   commentRepository,
-} from '../src/postgres-repositories.ts';
-import { pool } from '../src/db.ts';
+} from '../src/repositories/postgres-repositories.ts';
+import { pool } from '../src/db/client.ts';
 import { naiveRepository } from './naive-reports.mjs';
 
 async function measure(label, repository, bearId) {

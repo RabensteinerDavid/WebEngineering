@@ -1,5 +1,8 @@
-import { bearRepository, commentRepository } from './postgres-repositories.js';
-import { checkDatabase } from './db.js';
+import {
+  bearRepository,
+  commentRepository,
+} from './repositories/postgres-repositories.js';
+import { checkDatabase } from './db/client.js';
 import express from 'express';
 import {
   requestLogger,
@@ -7,12 +10,12 @@ import {
   HttpError,
   NotFoundError,
 } from './errors.js';
-import { createBearRoutes } from './bear-routes.js';
-import { createCommentRoutes } from './comment-routes.js';
+import { createBearRoutes } from './routes/bear-routes.js';
+import { createCommentRoutes } from './routes/comment-routes.js';
 import { readFileSync } from 'node:fs';
-import { allowCors } from './cors.js';
+import { allowCors } from './middleware/cors.js';
 import swaggerUi from 'swagger-ui-express';
-import { createOpenApiDocument } from './openapi.js';
+import { createOpenApiDocument } from './docs/openapi.js';
 
 const app = express();
 const port = 3000;

@@ -1,5 +1,5 @@
-import { z } from './zod.js';
-import { ValidationError } from './errors.js';
+import { z } from '../config/zod.js';
+import { ValidationError } from '../errors.js';
 import type { Comment } from './comments.js';
 
 const firstIndex = 0;

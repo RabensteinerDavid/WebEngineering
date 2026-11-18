@@ -1,12 +1,12 @@
 import { sql } from 'drizzle-orm';
 import { readFile } from 'node:fs/promises';
-import { db, pool } from './db.js';
-import { bearSchema } from './bears.js';
+import { db, pool } from './client.js';
+import { bearSchema } from '../models/bears.js';
 import { bears } from './schema.js';
 
 try {
   const json = await readFile(
-    new URL('../fixtures/bears.json', import.meta.url),
+    new URL('../../fixtures/bears.json', import.meta.url),
     'utf8'
   );
   const entries = bearSchema.array().nonempty().parse(JSON.parse(json));

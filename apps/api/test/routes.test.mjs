@@ -3,10 +3,10 @@ import { once } from 'node:events';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import express from 'express';
-import { createBearRoutes } from '../src/bear-routes.ts';
-import { createCommentRoutes } from '../src/comment-routes.ts';
+import { createBearRoutes } from '../src/routes/bear-routes.ts';
+import { createCommentRoutes } from '../src/routes/comment-routes.ts';
 import { errorHandler } from '../src/errors.ts';
-import { createMemoryRepositories } from '../src/memory-repositories.ts';
+import { createMemoryRepositories } from '../src/repositories/memory-repositories.ts';
 
 test('comments belong to one bear and can be created, read and deleted', async (t) => {
   // Set up the test data and in-memory repositories.

@@ -1,9 +1,9 @@
-import { makePage } from './pagination.js';
+import { makePage } from '../models/pagination.js';
 import { and, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
-import { db } from './db.js';
-import { bears, comments } from './schema.js';
-import { commentSchema, type Comment } from './comments.js';
-import type { BearRepository, CommentRepository } from './repositories.js';
+import { db } from '../db/client.js';
+import { bears, comments } from '../db/schema.js';
+import { commentSchema, type Comment } from '../models/comments.js';
+import type { BearRepository, CommentRepository } from './interfaces.js';
 
 const lastVisibleRow = -2;
 const extraRow = 1;

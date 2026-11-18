@@ -1,4 +1,4 @@
-import { z } from './zod.js';
+import { z } from '../config/zod.js';
 
 const minimumLength = 1;
 const placeholder = '/media/placeholder.png';

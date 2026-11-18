@@ -1,8 +1,8 @@
-import { makePage } from './pagination.js';
+import { makePage } from '../models/pagination.js';
 import { randomUUID } from 'node:crypto';
-import type { Bear } from './bears.js';
-import type { Comment } from './comments.js';
-import type { BearRepository, CommentRepository } from './repositories.js';
+import type { Bear } from '../models/bears.js';
+import type { Comment } from '../models/comments.js';
+import type { BearRepository, CommentRepository } from './interfaces.js';
 
 const initialReportCount = 0;
 const oneReport = 1;
