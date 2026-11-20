@@ -1,15 +1,13 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState, type JSX } from 'react';
+import { useContext, useEffect, useState, type JSX } from 'react';
 import { apiUrl } from '../../api/url';
 import { checkResponse } from '../../api/problem';
 
-interface User {
-  email: string;
-}
+import { AuthContext, type User } from './AuthContext';
 const unauthorized = 401;
 
 export default function Account(): JSX.Element {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, setUser } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(true);
@@ -22,10 +20,14 @@ export default function Account(): JSX.Element {
       typeof data !== 'object' ||
       data === null ||
       !('email' in data) ||
-      typeof data.email !== 'string'
+      typeof data.email !== 'string' ||
+      !('id' in data) ||
+      typeof data.id !== 'string' ||
+      !('role' in data) ||
+      (data.role !== 'user' && data.role !== 'moderator')
     )
       throw new Error('Invalid user response.');
-    return { email: data.email };
+    return { id: data.id, email: data.email, role: data.role };
   }
 
   useEffect(() => {
@@ -54,7 +56,7 @@ export default function Account(): JSX.Element {
     return () => {
       controller.abort();
     };
-  }, []);
+  }, [setUser]);
 
   async function login(): Promise<void> {
     setBusy(true);

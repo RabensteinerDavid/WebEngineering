@@ -8,7 +8,7 @@ import { createCommentRoutes } from '../src/routes/comment-routes.ts';
 import { errorHandler } from '../src/errors.ts';
 import { createMemoryRepositories } from '../src/repositories/memory-repositories.ts';
 
-test('comments belong to one bear and can be created, read and deleted', async (t) => {
+test('bear search, comment pagination, reporting and access permissions', async (t) => {
   // Set up the test data and in-memory repositories.
   const entries = JSON.parse(
     readFileSync(new URL('../fixtures/bears.json', import.meta.url))
@@ -17,9 +17,25 @@ test('comments belong to one bear and can be created, read and deleted', async (
 
   // Set up and start the Express test server.
   const app = express();
+  const user = {
+    id: '11111111-1111-4111-8111-111111111111',
+    email: 'author@example.com',
+    role: 'user',
+  };
+  const users = {
+    findById: async (id) => {
+      if (id === 'moderator') return { ...user, id, role: 'moderator' };
+      if (id === 'other') return { ...user, id };
+      return id === user.id ? user : undefined;
+    },
+  };
   app.use(express.json());
+  app.use((req, res, next) => {
+    req.session = { userId: req.headers['x-test-user'] ?? user.id };
+    next();
+  });
   app.use('/api/bears', createBearRoutes(bears));
-  app.use('/api', createCommentRoutes(bears, comments));
+  app.use('/api', createCommentRoutes(bears, comments, users));
   app.use(errorHandler);
 
   const server = app.listen(0, '127.0.0.1');
@@ -99,27 +115,76 @@ test('comments belong to one bear and can be created, read and deleted', async (
     return await response.json();
   };
 
-  // Test 13: Verify that the first report does not hide the comment.
+  // Test 13: Verify that anonymous deletion returns HTTP 401.
+  assert.equal(
+    (
+      await fetch(url, {
+        method: 'DELETE',
+        headers: { 'x-test-user': 'anonymous' },
+      })
+    ).status,
+    401
+  );
+  // Test 14: Verify that another user cannot delete the comment (HTTP 403).
+  assert.equal(
+    (
+      await fetch(url, {
+        method: 'DELETE',
+        headers: { 'x-test-user': 'other' },
+      })
+    ).status,
+    403
+  );
+  // Test 15: Verify that a moderator can delete another user's comment (HTTP 204).
+  const modComment = await comments.create(
+    entries[0].id,
+    { author: 'Test', text: 'Moderator test' },
+    user.id
+  );
+  assert.equal(
+    (
+      await fetch(base + '/comments/' + modComment.id, {
+        method: 'DELETE',
+        headers: { 'x-test-user': 'moderator' },
+      })
+    ).status,
+    204
+  );
+  // Test 16: Verify that anonymous comment creation returns HTTP 401.
+  assert.equal(
+    (
+      await fetch(collection, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-test-user': 'anonymous',
+        },
+        body: JSON.stringify({ author: 'Test', text: 'Anonymous' }),
+      })
+    ).status,
+    401
+  );
+  // Test 17: Verify that the first report does not hide the comment.
   assert.equal((await report()).hiddenAt, null);
 
-  // Test 14: Verify that the second report does not hide the comment.
+  // Test 18: Verify that the second report does not hide the comment.
   assert.equal((await report()).hiddenAt, null);
 
-  // Test 15: Verify that the third report hides the comment.
+  // Test 19: Verify that the third report hides the comment.
   const hidden = await report();
   assert.equal(hidden.reportCount, 3);
   assert.ok(hidden.hiddenAt);
 
-  // Test 16: Verify that additional reports preserve the original hidden timestamp.
+  // Test 20: Verify that additional reports preserve the original hidden timestamp.
   assert.equal((await report()).hiddenAt, hidden.hiddenAt);
 
-  // Test 17: Verify that hidden comments are excluded from the comment list.
+  // Test 21: Verify that hidden comments are excluded from the comment list.
   const visible = await (await fetch(collection)).json();
   assert.ok(visible.items.every((item) => item.id !== comment.id));
 
-  // Test 18: Delete the comment and verify the HTTP 204 status.
+  // Test 22: Verify that the author can delete their own comment (HTTP 204).
   assert.equal((await fetch(url, { method: 'DELETE' })).status, 204);
 
-  // Test 19: Verify that the deleted comment returns HTTP 404.
+  // Test 23: Verify that the deleted comment returns HTTP 404.
   assert.equal((await fetch(url)).status, 404);
 });

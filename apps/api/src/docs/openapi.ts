@@ -136,6 +136,7 @@ registry.registerPath({
     },
   },
   responses: {
+    '401': problemResponse('Login required.'),
     '201': {
       ...jsonResponse('Comment created.', comment),
       headers: responseHeaders.extend({
@@ -178,6 +179,10 @@ registry.registerPath({
   summary: 'Delete a comment',
   request: { params: commentParams, headers: requestHeaders },
   responses: {
+    '401': problemResponse('Login required.'),
+    '403': problemResponse(
+      'Only the author or a moderator may delete this comment.'
+    ),
     '204': {
       description: 'Comment deleted; no response body.',
       headers: responseHeaders,

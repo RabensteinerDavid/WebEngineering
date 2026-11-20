@@ -821,3 +821,71 @@ Compare session cookies and JWTs regarding revocation, statelessness, size and s
 
 ### Answer
 Session cookies are small and stateful because session data is stored on the server, allowing immediate revocation. JWTs are larger and stateless, but harder to revoke before expiration. HttpOnly session cookies cannot be stolen through JavaScript, although XSS attackers can still make authenticated requests. JWTs stored in localStorage can be stolen through XSS. SameSite helps prevent CSRF by restricting when browsers send cookies with cross-site requests, but it does not provide complete protection.
+
+### Playground 6 — Task 3
+
+Apply the migration and seed a moderator:
+
+```sh
+npm run db:migrate
+# Set MODERATOR_EMAIL and MODERATOR_PASSWORD (12–128 characters) in .env first.
+npm run db:seed:moderator
+```
+
+**Prepare two users and three cookie files:**
+
+```sh
+# Register demo@example.com using Task 1 if it does not exist yet.
+curl -i http://localhost:3000/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"other@example.com","password":"another long password"}'
+
+curl -i -c /tmp/author-cookies.txt http://localhost:3000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"demo@example.com","password":"a long demo password"}'
+curl -i -c /tmp/other-cookies.txt http://localhost:3000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"other@example.com","password":"another long password"}'
+# Replace email and password with the moderator credentials from .env.
+curl -i -c /tmp/moderator-cookies.txt http://localhost:3000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"moderator@example.com","password":"REPLACE_WITH_MODERATOR_PASSWORD"}'
+```
+
+**Anonymous creation: 401**
+
+```sh
+curl -i http://localhost:3000/api/bears/u-arctos/comments \
+  -H 'Content-Type: application/json' \
+  -d '{"author":"Demo","text":"My comment"}'
+```
+
+Create a comment as the author (201), then copy its returned `id` into `COMMENT_ID`:
+
+```sh
+curl -i -b /tmp/author-cookies.txt http://localhost:3000/api/bears/u-arctos/comments \
+  -H 'Content-Type: application/json' \
+  -d '{"author":"Demo","text":"My comment"}'
+COMMENT_ID='replace-with-returned-id'
+
+# Anonymous: 401
+curl -i -X DELETE "http://localhost:3000/api/comments/$COMMENT_ID"
+# Another user: 403
+curl -i -X DELETE -b /tmp/other-cookies.txt "http://localhost:3000/api/comments/$COMMENT_ID"
+# Author: 204
+curl -i -X DELETE -b /tmp/author-cookies.txt "http://localhost:3000/api/comments/$COMMENT_ID"
+```
+
+Create another comment with the same POST command, update `COMMENT_ID` to its new ID, then delete it as moderator (204):
+
+```sh
+curl -i -X DELETE -b /tmp/moderator-cookies.txt "http://localhost:3000/api/comments/$COMMENT_ID"
+```
+
+### Theory
+
+Authentication versus authorisation, 401 versus 403. Explain RBAC and ownership checks, what an IDOR vulnerability is (OWASP A01 Broken Access Control) and why hiding a button in the client is not a security control.
+
+### Answer
+
+Authentication verifies **who the user is**, while authorisation checks **what they are allowed to do**. A **401** means the user is not authenticated, while **403** means they lack permission. **RBAC** controls access based on roles, and ownership checks ensure users can only modify their own resources. **IDOR** is a security vulnerability where users access other users' resources by changing IDs without proper permission checks. Hiding a button is not secure because API requests can still be sent directly. Access control must always be enforced on the server.

@@ -1,3 +1,4 @@
+import { userRepository } from '../src/repositories/user-repository.ts';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import express from 'express';
@@ -11,7 +12,10 @@ import { naiveRepository } from './naive-reports.mjs';
 
 async function measure(label, repository, bearId) {
   const app = express();
-  app.use('/api', createCommentRoutes(bearRepository, repository));
+  app.use(
+    '/api',
+    createCommentRoutes(bearRepository, repository, userRepository)
+  );
   const server = app.listen(0, '127.0.0.1');
   await once(server, 'listening');
   try {

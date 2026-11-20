@@ -26,6 +26,18 @@ export const bears = pgTable('bears', {
     .defaultNow(),
 });
 
+export const users = pgTable('users', {
+  id: uuid().primaryKey().defaultRandom(),
+  email: text().notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  role: text({ enum: ['user', 'moderator'] })
+    .notNull()
+    .default('user'),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const comments = pgTable(
   'comments',
   {
@@ -35,6 +47,9 @@ export const comments = pgTable(
       .references(() => bears.id, { onDelete: 'cascade' }),
     reportCount: integer('report_count').notNull().default(initialReportCount),
     hiddenAt: timestamp('hidden_at', { withTimezone: true }),
+    authorId: uuid('author_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
     author: text().notNull(),
     text: text().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
@@ -52,18 +67,6 @@ export const comments = pgTable(
     check('text_length', sql`char_length(${table.text}) between 1 and 2000`),
   ]
 );
-
-export const users = pgTable('users', {
-  id: uuid().primaryKey().defaultRandom(),
-  email: text().notNull().unique(),
-  passwordHash: text('password_hash').notNull(),
-  role: text({ enum: ['user', 'moderator'] })
-    .notNull()
-    .default('user'),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
 
 export const sessions = pgTable(
   'sessions',

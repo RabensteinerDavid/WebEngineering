@@ -33,10 +33,20 @@ export const bearRepository: BearRepository = {
 };
 
 function toComment(row: typeof comments.$inferSelect): Comment {
-  const { id, bearId, author, text, createdAt, reportCount, hiddenAt } = row;
+  const {
+    id,
+    bearId,
+    authorId,
+    author,
+    text,
+    createdAt,
+    reportCount,
+    hiddenAt,
+  } = row;
   return {
     id,
     bearId,
+    authorId,
     author,
     text,
     reportCount,
@@ -71,10 +81,10 @@ export const commentRepository: CommentRepository = {
       rows.at(lastVisibleRow)?.cursorTime
     );
   },
-  async create(bearId, input) {
+  async create(bearId, input, authorId) {
     const [row] = await db
       .insert(comments)
-      .values({ bearId, ...input })
+      .values({ bearId, ...input, authorId: authorId ?? null })
       .returning();
     if (row === undefined) throw new Error('Comment insert returned no row.');
     return toComment(row);
@@ -97,9 +107,18 @@ export const commentRepository: CommentRepository = {
       .returning();
     return row === undefined ? undefined : toComment(row);
   },
-  async remove(id) {
+  async remove(id, actor) {
     if (!commentSchema.shape.id.safeParse(id).success) return false;
-    const result = await db.delete(comments).where(eq(comments.id, id));
+    const result = await db
+      .delete(comments)
+      .where(
+        and(
+          eq(comments.id, id),
+          actor === undefined || actor.role === 'moderator'
+            ? undefined
+            : eq(comments.authorId, actor.id)
+        )
+      );
     return Boolean(result.rowCount);
   },
 };

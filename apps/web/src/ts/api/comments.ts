@@ -4,6 +4,7 @@ import { apiUrl } from './url';
 export interface Comment {
   id: string;
   bearId: string;
+  authorId: string | null;
   author: string;
   text: string;
   createdAt: string;
@@ -13,6 +14,8 @@ function isComment(value: unknown): value is Comment {
   return (
     typeof value === 'object' &&
     value !== null &&
+    'authorId' in value &&
+    (value.authorId === null || typeof value.authorId === 'string') &&
     ['id', 'bearId', 'author', 'text', 'createdAt'].every(
       (key) => key in value && typeof Reflect.get(value, key) === 'string'
     )
@@ -57,6 +60,7 @@ export async function addComment(
     apiUrl(`/api/bears/${encodeURIComponent(bearId)}/comments`),
     {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ author, text }),
     }
@@ -72,6 +76,7 @@ export async function deleteComment(commentId: string): Promise<void> {
     apiUrl(`/api/comments/${encodeURIComponent(commentId)}`),
     {
       method: 'DELETE',
+      credentials: 'include',
     }
   );
   await checkResponse(response);

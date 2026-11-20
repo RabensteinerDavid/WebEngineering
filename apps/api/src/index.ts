@@ -61,9 +61,13 @@ app.get('/health/ready', async (_request, response) => {
 });
 
 app.use(express.json());
-app.use('/api/auth', sessionMiddleware, createAuthRoutes(userRepository));
+app.use('/api', sessionMiddleware);
+app.use('/api/auth', createAuthRoutes(userRepository));
 app.use('/api/bears', createBearRoutes(bearRepository));
-app.use('/api', createCommentRoutes(bearRepository, commentRepository));
+app.use(
+  '/api',
+  createCommentRoutes(bearRepository, commentRepository, userRepository)
+);
 
 const openApiDocument = createOpenApiDocument(version);
 app.get('/api/openapi.json', (_request, response) => {

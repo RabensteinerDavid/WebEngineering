@@ -14,13 +14,17 @@ export interface CommentRepository {
     limit: number,
     cursor?: Cursor
   ) => Promise<CommentPage>;
-  create: (bearId: string, input: NewComment) => Promise<Comment>;
+  create: (
+    bearId: string,
+    input: NewComment,
+    authorId?: string
+  ) => Promise<Comment>;
   findById: (id: string) => Promise<Comment | undefined>;
   incrementReports: (
     id: string,
     hideAt: number
   ) => Promise<Comment | undefined>;
-  remove: (id: string) => Promise<boolean>;
+  remove: (id: string, actor?: User) => Promise<boolean>;
 }
 
 export interface UserRepository {

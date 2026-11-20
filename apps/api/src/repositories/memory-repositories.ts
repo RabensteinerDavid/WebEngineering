@@ -43,9 +43,10 @@ export function createMemoryRepositories(entries: Bear[]): {
           );
         return await Promise.resolve(makePage(rows, limit));
       },
-      create: async (bearId, input) => {
+      create: async (bearId, input, authorId) => {
         const comment: Comment = {
           ...input,
+          authorId: authorId ?? null,
           reportCount: initialReportCount,
           hiddenAt: null,
           bearId,
@@ -67,7 +68,15 @@ export function createMemoryRepositories(entries: Bear[]): {
         }
         return await Promise.resolve(comment);
       },
-      remove: async (id) => await Promise.resolve(comments.delete(id)),
+      remove: async (id, actor) => {
+        if (
+          actor !== undefined &&
+          actor.role !== 'moderator' &&
+          comments.get(id)?.authorId !== actor.id
+        )
+          return false;
+        return await Promise.resolve(comments.delete(id));
+      },
     },
   };
 }

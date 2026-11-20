@@ -1,3 +1,4 @@
+import { requireUser, requireCommentOwner } from '../policies/comments.js';
 import { reportComment } from '../services/report-service.js';
 import { decodeCursor, pageQuery } from '../models/pagination.js';
 import { Router } from 'express';
@@ -6,6 +7,7 @@ import { NotFoundError, ValidationError } from '../errors.js';
 import type {
   BearRepository,
   CommentRepository,
+  UserRepository,
 } from '../repositories/interfaces.js';
 
 const created = 201;
@@ -13,7 +15,8 @@ const noContent = 204;
 
 export function createCommentRoutes(
   bears: BearRepository,
-  comments: CommentRepository
+  comments: CommentRepository,
+  users: UserRepository
 ): Router {
   const commentRoutes = Router();
   commentRoutes.get('/bears/:id/comments', async (request, response) => {
@@ -46,6 +49,7 @@ export function createCommentRoutes(
   });
 
   commentRoutes.post('/bears/:id/comments', async (request, response) => {
+    const user = await requireUser(users, request.session.userId);
     const result = newCommentSchema.safeParse(request.body);
     if (!result.success) {
       throw new ValidationError(
@@ -64,7 +68,7 @@ export function createCommentRoutes(
       throw new NotFoundError('Bear not found.');
     }
 
-    const comment = await comments.create(id, result.data);
+    const comment = await comments.create(id, result.data, user.id);
 
     response
       .status(created)
@@ -90,7 +94,11 @@ export function createCommentRoutes(
   );
 
   commentRoutes.delete('/comments/:commentId', async (request, response) => {
-    const deleted = await comments.remove(request.params.commentId);
+    const user = await requireUser(users, request.session.userId);
+    const comment = await comments.findById(request.params.commentId);
+    if (comment === undefined) throw new NotFoundError('Comment not found.');
+    requireCommentOwner(user, comment);
+    const deleted = await comments.remove(request.params.commentId, user);
     if (!deleted) {
       throw new NotFoundError('Comment not found.');
     }
