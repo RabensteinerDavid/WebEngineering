@@ -2,6 +2,8 @@ import {
   check,
   index,
   integer,
+  json,
+  varchar,
   pgTable,
   text,
   timestamp,
@@ -9,6 +11,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
+const timestampPrecision = 6;
 const initialReportCount = 0;
 
 export const bears = pgTable('bears', {
@@ -61,3 +64,13 @@ export const users = pgTable('users', {
     .notNull()
     .defaultNow(),
 });
+
+export const sessions = pgTable(
+  'sessions',
+  {
+    sid: varchar().primaryKey(),
+    sess: json().notNull(),
+    expire: timestamp({ precision: timestampPrecision }).notNull(),
+  },
+  (table) => [index('sessions_expire_idx').on(table.expire)]
+);

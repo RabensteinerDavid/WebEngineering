@@ -1,3 +1,5 @@
+import { sessionMiddleware } from './middleware/session.js';
+import { env } from './config/env.js';
 import { createAuthRoutes } from './routes/auth-routes.js';
 import { userRepository } from './repositories/user-repository.js';
 import {
@@ -20,6 +22,8 @@ import swaggerUi from 'swagger-ui-express';
 import { createOpenApiDocument } from './docs/openapi.js';
 
 const app = express();
+const proxyHops = 1;
+if (env.NODE_ENV === 'production') app.set('trust proxy', proxyHops);
 const port = 3000;
 const packageInfo: unknown = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8')
@@ -57,7 +61,7 @@ app.get('/health/ready', async (_request, response) => {
 });
 
 app.use(express.json());
-app.use('/api/auth', createAuthRoutes(userRepository));
+app.use('/api/auth', sessionMiddleware, createAuthRoutes(userRepository));
 app.use('/api/bears', createBearRoutes(bearRepository));
 app.use('/api', createCommentRoutes(bearRepository, commentRepository));
 

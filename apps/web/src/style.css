@@ -281,3 +281,98 @@ audio {
   text-align: center;
   font-weight: bold;
 }
+
+.account {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-top: 1.2rem;
+  font-size: 1.6rem;
+}
+
+.account-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.account-register {
+  color: #2a2a2a;
+  text-underline-offset: 0.3rem;
+}
+
+.account-menu {
+  position: relative;
+}
+
+.account summary,
+.account button {
+  cursor: pointer;
+  border: 1px solid green;
+  border-radius: 0.6rem;
+  padding: 0.8rem 1.4rem;
+  background: green;
+  color: white;
+  font-size: 1.6rem;
+}
+
+.account summary {
+  list-style: none;
+}
+
+.account summary::-webkit-details-marker {
+  display: none;
+}
+
+.account summary:focus-visible,
+.account button:focus-visible,
+.account a:focus-visible,
+.account input:focus-visible {
+  outline: 3px solid green;
+  outline-offset: 3px;
+}
+
+.account button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.account-panel {
+  position: absolute;
+  top: calc(100% + 0.8rem);
+  right: 0;
+  z-index: 10;
+  display: grid;
+  gap: 1rem;
+  width: min(30rem, 80vw);
+  box-sizing: border-box;
+  padding: 2rem;
+  border: 1px solid #ccd4ce;
+  border-radius: 0.8rem;
+  background: white;
+  box-shadow: 0 6px 24px #0002;
+}
+
+.account-panel label {
+  font-size: 1.6rem;
+}
+
+.account-panel input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid #999;
+  border-radius: 0.4rem;
+  font-size: 1.6rem;
+}
+
+.account-email {
+  max-width: 28rem;
+  overflow-wrap: anywhere;
+}
+
+.account [role='alert'] {
+  color: #9b1c1c;
+  margin: 0.5rem 0;
+}

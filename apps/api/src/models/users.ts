@@ -14,3 +14,6 @@ export const userSchema = z.object({
 });
 export type User = z.infer<typeof userSchema>;
 export type Registration = z.infer<typeof registrationSchema>;
+
+export const loginSchema = registrationSchema;
+export type UserCredentials = User & { passwordHash: string };

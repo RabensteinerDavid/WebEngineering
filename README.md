@@ -785,3 +785,39 @@ Why hash instead of encrypt, what do salt and work factor do, and why is a delib
 ### Answer
 
 Passwords are hashed instead of encrypted because hashing is one-way and passwords cannot be decrypted. A salt ensures that identical passwords produce different hashes, while the work factor controls the time and memory required. Deliberately slow hashing makes brute-force attacks more expensive. NIST prefers password length over composition rules because longer passwords are generally harder to guess, while composition rules often lead to predictable patterns. A clear 409 Conflict improves usability by indicating that an email is already registered, but it also enables attackers to discover existing accounts through user enumeration.
+
+### Playground 6 — Task 2
+
+For local HTTP development, use `NODE_ENV=development` (also the Compose default). Production requires HTTPS, `NODE_ENV=production` and a private `SESSION_SECRET` of at least 32 characters. Generate a secret with `openssl rand -hex 32`. Behind the trusted TLS proxy, forward `X-Forwarded-Proto: https`; the API trusts one proxy hop. The deployment must restrict direct API access to that trusted proxy.
+
+```sh
+# Register demo@example.com first using Task 1.
+curl -i -c /tmp/bears-cookies.txt http://localhost:3000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"demo@example.com","password":"a long demo password"}'
+curl -i -b /tmp/bears-cookies.txt http://localhost:3000/api/auth/me
+curl -i -X POST -b /tmp/bears-cookies.txt http://localhost:3000/api/auth/logout
+curl -i -b /tmp/bears-cookies.txt http://localhost:3000/api/auth/me
+```
+
+Expected responses are 200, 200, 204, then 401 Problem Details. Even replaying the old cookie after logout returns 401. Wrong credentials return a generic 401.
+
+**ADR — authentication state**
+
+Context: The React SPA and Express API require secure authentication and session management.
+Context: PostgreSQL is already available and can store sessions across multiple API instances.
+Options: Server-side sessions with an opaque session ID stored in an HTTP cookie, or signed JWTs.
+Trade-offs: Sessions allow immediate revocation, while JWTs avoid database lookups but require additional mechanisms for secure logout and revocation.
+Decision: Use express-session with connect-pg-simple and the existing PostgreSQL connection pool.
+Rationale: Server-side sessions simplify logout, keep sensitive user data on the server, and fit our existing architecture.
+Storage: PostgreSQL stores session data, including the user ID and expiry; the browser only receives a signed, opaque session ID.
+Security: Cookies use HttpOnly, SameSite=Lax, Path=/, and Secure in production, with a 24-hour lifetime.
+Lifecycle: Login verifies the password using Argon2id and regenerates the session ID; logout destroys the server-side session.
+Consequences: Sessions require PostgreSQL availability and a shared session secret across API instances, but provide small cookies, centralized control, and immediate revocation.
+
+### Theory
+
+Compare session cookies and JWTs regarding revocation, statelessness, size and storage in the browser. What does an XSS attacker get in each case, and how does SameSite relate to CSRF?
+
+### Answer
+Session cookies are small and stateful because session data is stored on the server, allowing immediate revocation. JWTs are larger and stateless, but harder to revoke before expiration. HttpOnly session cookies cannot be stolen through JavaScript, although XSS attackers can still make authenticated requests. JWTs stored in localStorage can be stolen through XSS. SameSite helps prevent CSRF by restricting when browsers send cookies with cross-site requests, but it does not provide complete protection.

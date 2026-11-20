@@ -212,6 +212,40 @@ registry.registerPath({
   },
 });
 
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/login',
+  summary: 'Log in and set a session cookie',
+  request: {
+    body: {
+      required: true,
+      content: { 'application/json': { schema: registrationSchema } },
+    },
+  },
+  responses: {
+    '200': jsonResponse('Logged-in user.', userSchema),
+    '400': problemResponse('Invalid login details.', validationProblem),
+    '401': problemResponse('Invalid credentials.'),
+    ...serverErrors,
+  },
+});
+registry.registerPath({
+  method: 'get',
+  path: '/api/auth/me',
+  summary: 'Get the current user from the session cookie',
+  responses: {
+    '200': jsonResponse('Current user.', userSchema),
+    '401': problemResponse('Not logged in.'),
+    ...serverErrors,
+  },
+});
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/logout',
+  summary: 'Destroy the session and clear the cookie',
+  responses: { '204': { description: 'Logged out.' }, ...serverErrors },
+});
+
 export function createOpenApiDocument(
   version: string
 ): ReturnType<OpenApiGeneratorV31['generateDocument']> {
