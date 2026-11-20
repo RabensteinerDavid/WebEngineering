@@ -1,3 +1,4 @@
+import Register from './components/auth/Register';
 import type { JSX } from 'react';
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import BearArticle from './components/bears/BearArticle';
@@ -12,6 +13,7 @@ export default function AppRoutes({ query }: AppRoutesProps): JSX.Element {
 
   return (
     <Routes>
+      <Route path="/register" element={<Register />} />
       <Route
         path="/"
         element={<Navigate to={{ pathname: '/bears', search }} replace />}

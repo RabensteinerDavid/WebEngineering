@@ -1,3 +1,4 @@
+import { registrationSchema, userSchema } from '../models/users.js';
 import { pageQuery } from '../models/pagination.js';
 import { z } from '../config/zod.js';
 import {
@@ -191,6 +192,24 @@ registry.registerPath({
   summary: 'Demonstrate an unexpected server error',
   request: { headers: requestHeaders },
   responses: serverErrors,
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/register',
+  summary: 'Register a user',
+  request: {
+    body: {
+      required: true,
+      content: { 'application/json': { schema: registrationSchema } },
+    },
+  },
+  responses: {
+    '201': jsonResponse('User registered.', userSchema),
+    '400': problemResponse('Invalid registration details.', validationProblem),
+    '409': problemResponse('Email already registered.'),
+    ...serverErrors,
+  },
 });
 
 export function createOpenApiDocument(

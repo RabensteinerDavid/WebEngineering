@@ -1,3 +1,5 @@
+import { createAuthRoutes } from './routes/auth-routes.js';
+import { userRepository } from './repositories/user-repository.js';
 import {
   bearRepository,
   commentRepository,
@@ -55,6 +57,7 @@ app.get('/health/ready', async (_request, response) => {
 });
 
 app.use(express.json());
+app.use('/api/auth', createAuthRoutes(userRepository));
 app.use('/api/bears', createBearRoutes(bearRepository));
 app.use('/api', createCommentRoutes(bearRepository, commentRepository));
 

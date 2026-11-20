@@ -754,3 +754,34 @@ PostgreSQL's default isolation level, **Read Committed**, prevents dirty reads b
 - **Optimistic concurrency:** Uses a version column to detect conflicts. Failed updates must be retried.
 
 For incrementing a comment's report count, **atomic updates are usually the simplest solution**.
+### Playground 6 — Task 1
+
+```sh
+docker compose up -d --wait db
+npm run db:migrate
+npm run dev
+```
+
+For testing:
+
+```sh
+curl -i -X POST http://localhost:3000/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"demo@example.com","password":"a long demo password"}'
+```
+
+The first request returns 201 and the public user fields. Repeating it returns 409 Problem Details.
+
+Inspect password storage:
+
+```sh
+docker compose exec -T db psql -U bears -d bears -c 'SELECT email, password_hash FROM users;'
+```
+
+### Theory
+
+Why hash instead of encrypt, what do salt and work factor do, and why is a deliberately slow hash a feature?  Why does NIST SP 800-63B prefer length over composition rules? What is the trade-off between a clear 409 and user enumeration?
+
+### Answer
+
+Passwords are hashed instead of encrypted because hashing is one-way and passwords cannot be decrypted. A salt ensures that identical passwords produce different hashes, while the work factor controls the time and memory required. Deliberately slow hashing makes brute-force attacks more expensive. NIST prefers password length over composition rules because longer passwords are generally harder to guess, while composition rules often lead to predictable patterns. A clear 409 Conflict improves usability by indicating that an email is already registered, but it also enables attackers to discover existing accounts through user enumeration.

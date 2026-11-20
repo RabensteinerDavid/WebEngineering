@@ -49,3 +49,15 @@ export const comments = pgTable(
     check('text_length', sql`char_length(${table.text}) between 1 and 2000`),
   ]
 );
+
+export const users = pgTable('users', {
+  id: uuid().primaryKey().defaultRandom(),
+  email: text().notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  role: text({ enum: ['user', 'moderator'] })
+    .notNull()
+    .default('user'),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

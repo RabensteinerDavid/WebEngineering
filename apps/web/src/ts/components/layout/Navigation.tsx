@@ -20,6 +20,9 @@ export default function Navigation({
         <li>
           <Link to={`/bears${search}`}>Home</Link>
         </li>
+        <li>
+          <Link to="/register">Register</Link>
+        </li>
         {links.map((link) => (
           <li key={link}>
             <a href="#">{link}</a>

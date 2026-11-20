@@ -1,3 +1,4 @@
+import type { User } from '../models/users.js';
 import type { Cursor, CommentPage } from '../models/pagination.js';
 import type { Bear } from '../models/bears.js';
 import type { Comment, NewComment } from '../models/comments.js';
@@ -20,4 +21,8 @@ export interface CommentRepository {
     hideAt: number
   ) => Promise<Comment | undefined>;
   remove: (id: string) => Promise<boolean>;
+}
+
+export interface UserRepository {
+  create: (email: string, passwordHash: string) => Promise<User | undefined>;
 }
