@@ -940,3 +940,39 @@ Map your measures to the OWASP Top 10: which items do they address? Explain toke
 **Token bucket:** Tokens refill continuously. Each request consumes one token, allowing limited bursts while controlling the average rate.
 
 **Defence in depth:** Multiple protections work together, so one failed protection does not leave the entire API unprotected.
+
+### Playground 6 — Task 5
+
+### Security review
+
+| OWASP Top 10 risk            | How it applies | Existing mitigation | Remaining risk |
+|------------------------------| --- | --- | --- |
+| A01: Broken Access Control   | A user changes the comment ID in a DELETE URL to target another user's comment (IDOR). | `requireUser` checks the session; `requireCommentOwner` allows only the author or a moderator to delete. The repository also restricts deletion by ownership. | A stolen session still has the victim's permissions. Reporting is public, so automated reports can hide someone else's comments. |
+| A05: Injection               | Search text could contain SQL syntax; saved comments could contain an XSS payload. | Drizzle binds search values as SQL parameters. Zod restricts input shape and length. React renders comment text as text, including in `Highlight`, without `dangerouslySetInnerHTML`. | Future raw SQL concatenation or HTML rendering could introduce injection. Helmet currently protects API responses and Swagger; the separately served frontend has no CSP of its own. |
+| A07: Authentication Failures | Attackers repeatedly guess passwords or attempt to reuse sessions. | Argon2id password hashing, generic login errors, rate limits, session ID regeneration on login, server-side logout, HttpOnly/SameSite cookies and Secure cookies in production. | Distributed attackers can use many IPs. Rate-limit counters reset on restart and are not shared across API instances. There is no MFA. |
+
+### Automated IDOR attack test
+
+Run all tests from the project root:
+
+```sh
+npm test
+```
+
+Run only the attack test:
+
+```sh
+npm test -w apps/api -- test/idor.test.mjs
+```
+
+### Theory
+
+Why do parameterised queries stop SQL injection while input validation alone does not? Where is stored XSS mitigated (output encoding in React, Content Security Policy) and what is the server's share of the responsibility?
+
+### Answer
+
+Parameterized queries keep SQL structure separate from input values. For example, the Drizzle expression ``sql`strpos(lower(${bears.name}), lower(${query})) > 0` `` binds `query` as data. Even a value such as `' OR 1=1 --` cannot become executable SQL. Validation alone is insufficient: a valid string can still contain SQL syntax, and legitimate text can contain quotes.
+
+Stored XSS happens when saved input is later interpreted as executable HTML or JavaScript. React escapes comment text when rendering it, so an HTML payload is displayed as text. A CSP on the frontend's HTML response can provide an additional layer by restricting script execution. The API's Helmet headers do not automatically protect HTML served by Vite or Nginx.
+
+The server validates inputs, enforces permissions and returns comments as JSON. It should not treat user text as trusted HTML. If rich HTML were allowed later, it would need an explicit sanitization policy; the browser UI must still use safe rendering. Input validation alone does not prevent stored XSS.

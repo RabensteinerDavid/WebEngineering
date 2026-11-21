@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
-import { test } from 'node:test';
+import { test, onTestFinished } from 'vitest';
 import { readFileSync } from 'node:fs';
 import express from 'express';
 import { createBearRoutes } from '../src/routes/bear-routes.ts';
@@ -8,7 +8,7 @@ import { createCommentRoutes } from '../src/routes/comment-routes.ts';
 import { errorHandler } from '../src/errors.ts';
 import { createMemoryRepositories } from '../src/repositories/memory-repositories.ts';
 
-test('bear search, comment pagination, reporting and access permissions', async (t) => {
+test('bear search, comment pagination, reporting and access permissions', async () => {
   // Set up the test data and in-memory repositories.
   const entries = JSON.parse(
     readFileSync(new URL('../fixtures/bears.json', import.meta.url))
@@ -39,7 +39,7 @@ test('bear search, comment pagination, reporting and access permissions', async 
   app.use(errorHandler);
 
   const server = app.listen(0, '127.0.0.1');
-  t.after(() => new Promise((resolve) => server.close(resolve)));
+  onTestFinished(() => new Promise((resolve) => server.close(resolve)));
   await once(server, 'listening');
 
   const base = 'http://127.0.0.1:' + server.address().port + '/api';
