@@ -2,7 +2,7 @@ import { z } from '../config/zod.js';
 
 const minPasswordLength = 12;
 const maxPasswordLength = 128;
-export const registrationSchema = z.object({
+export const registrationSchema = z.strictObject({
   email: z.string().trim().toLowerCase().pipe(z.email()),
   password: z.string().min(minPasswordLength).max(maxPasswordLength),
 });

@@ -1,3 +1,5 @@
+import { validate, emptyInput } from '../middleware/validate.js';
+import { createAuthRateLimit } from '../middleware/auth-rate-limit.js';
 import { promisify } from 'node:util';
 import { loginUser } from '../services/login-service.js';
 import { cookieOptions } from '../middleware/session.js';
@@ -12,7 +14,11 @@ const unauthorized = 401;
 const noContent = 204;
 export function createAuthRoutes(users: UserRepository): Router {
   const router = Router();
-  router.post('/register', async (request, response) => {
+  router.use((request, _response, next) => {
+    validate(emptyInput, request.query);
+    next();
+  });
+  router.post('/register', createAuthRateLimit(), async (request, response) => {
     const result = registrationSchema.safeParse(request.body);
     if (!result.success)
       throw new ValidationError(
@@ -25,7 +31,7 @@ export function createAuthRoutes(users: UserRepository): Router {
     response.status(created).json(await registerUser(users, result.data));
   });
 
-  router.post('/login', async (request, response) => {
+  router.post('/login', createAuthRateLimit(), async (request, response) => {
     const result = loginSchema.safeParse(request.body);
     if (!result.success)
       throw new ValidationError(
@@ -57,6 +63,7 @@ export function createAuthRoutes(users: UserRepository): Router {
     response.json(user);
   });
   router.post('/logout', async (request, response) => {
+    validate(emptyInput, request.body ?? {});
     const { session } = request;
     await promisify((done: (error?: unknown) => void) => {
       session.destroy(done);

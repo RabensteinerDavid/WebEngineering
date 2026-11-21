@@ -889,3 +889,54 @@ Authentication versus authorisation, 401 versus 403. Explain RBAC and ownership 
 ### Answer
 
 Authentication verifies **who the user is**, while authorisation checks **what they are allowed to do**. A **401** means the user is not authenticated, while **403** means they lack permission. **RBAC** controls access based on roles, and ownership checks ensure users can only modify their own resources. **IDOR** is a security vulnerability where users access other users' resources by changing IDs without proper permission checks. Hiding a button is not secure because API requests can still be sent directly. Access control must always be enforced on the server.
+
+### Playground 6 — Task 4
+
+**Demonstrate rate limiting:** Start the API, then run:
+
+```sh
+sh apps/api/scripts/check-login-limit.sh
+```
+
+On a fresh rate-limit window, attempts 1–10 return 401 for incorrect credentials; attempt 11 returns 429 with `Retry-After`. Wait one minute before repeating. The script only sends login requests; it does not create users.
+
+**Inspect security headers:**
+
+```sh
+curl -I http://localhost:3000/health
+```
+
+**Check validation (400) and the body limit (413):**
+
+```sh
+curl -i 'http://localhost:3000/api/bears?q=panda&unexpected=value'
+curl -i http://localhost:3000/api/comments/not-a-uuid
+node -e 'process.stdout.write(JSON.stringify({text: "x".repeat(17000)}))' | \
+  curl -i http://localhost:3000/api/auth/login \
+    -H 'Content-Type: application/json' --data-binary @-
+```
+
+**Check CORS:**
+
+```sh
+curl -i http://localhost:3000/health -H 'Origin: http://localhost:4173'
+curl -i http://localhost:3000/health -H 'Origin: https://untrusted.example'
+```
+
+### Theory
+
+Map your measures to the OWASP Top 10: which items do they address? Explain token bucket versus fixed window rate limiting, and what "defence in depth" means for this API.
+
+### Answer
+
+- **A01 – Broken Access Control:** Server-side ownership and role checks restrict comment deletion.
+- **A02 – Security Misconfiguration:** Helmet, strict CORS and request-size limits harden the API.
+- **A04 – Cryptographic Failures:** Environment-based secrets and secret scanning reduce secret exposure.
+- **A05 – Injection:** Zod validates inputs; parameterized SQL prevents SQL injection.
+- **A07 – Authentication Failures:** Login rate limiting reduces brute-force attempts.
+
+**Fixed window:** Allows a maximum number of requests per time window, then resets. Our API allows 10 attempts per minute/IP.
+
+**Token bucket:** Tokens refill continuously. Each request consumes one token, allowing limited bursts while controlling the average rate.
+
+**Defence in depth:** Multiple protections work together, so one failed protection does not leave the entire API unprotected.

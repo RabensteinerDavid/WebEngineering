@@ -1,3 +1,6 @@
+import { bearSchema } from '../models/bears.js';
+import { commentSchema } from '../models/comments.js';
+import { validate, emptyInput } from '../middleware/validate.js';
 import { requireUser, requireCommentOwner } from '../policies/comments.js';
 import { reportComment } from '../services/report-service.js';
 import { decodeCursor, pageQuery } from '../models/pagination.js';
@@ -19,6 +22,17 @@ export function createCommentRoutes(
   users: UserRepository
 ): Router {
   const commentRoutes = Router();
+  commentRoutes.param('id', (_request, _response, next, value: unknown) => {
+    validate(bearSchema.shape.id, value);
+    next();
+  });
+  commentRoutes.param(
+    'commentId',
+    (_request, _response, next, value: unknown) => {
+      validate(commentSchema.shape.id, value);
+      next();
+    }
+  );
   commentRoutes.get('/bears/:id/comments', async (request, response) => {
     const {
       params: { id },
@@ -49,6 +63,7 @@ export function createCommentRoutes(
   });
 
   commentRoutes.post('/bears/:id/comments', async (request, response) => {
+    validate(emptyInput, request.query);
     const user = await requireUser(users, request.session.userId);
     const result = newCommentSchema.safeParse(request.body);
     if (!result.success) {
@@ -77,6 +92,7 @@ export function createCommentRoutes(
   });
 
   commentRoutes.get('/comments/:commentId', async (request, response) => {
+    validate(emptyInput, request.query);
     const comment = await comments.findById(request.params.commentId);
 
     if (comment === undefined) {
@@ -89,11 +105,14 @@ export function createCommentRoutes(
   commentRoutes.post(
     '/comments/:commentId/report',
     async (request, response) => {
+      validate(emptyInput, request.query);
+      validate(emptyInput, request.body ?? {});
       response.json(await reportComment(comments, request.params.commentId));
     }
   );
 
   commentRoutes.delete('/comments/:commentId', async (request, response) => {
+    validate(emptyInput, request.query);
     const user = await requireUser(users, request.session.userId);
     const comment = await comments.findById(request.params.commentId);
     if (comment === undefined) throw new NotFoundError('Comment not found.');

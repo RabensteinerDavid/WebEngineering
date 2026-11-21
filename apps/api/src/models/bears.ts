@@ -11,3 +11,8 @@ export const bearSchema = z.object({
   image: z.union([z.url(), z.literal(placeholder)]),
 });
 export type Bear = z.infer<typeof bearSchema>;
+
+const maxQueryLength = 100;
+export const bearSearchQuery = z.strictObject({
+  q: z.string().trim().max(maxQueryLength).optional(),
+});

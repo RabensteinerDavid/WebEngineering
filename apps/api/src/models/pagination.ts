@@ -6,9 +6,10 @@ const firstIndex = 0;
 const lastIndex = -1;
 const defaultLimit = 20;
 const maxLimit = 100;
-export const pageQuery = z.object({
+const maxCursorLength = 512;
+export const pageQuery = z.strictObject({
   limit: z.coerce.number().int().positive().max(maxLimit).default(defaultLimit),
-  cursor: z.base64url().optional(),
+  cursor: z.base64url().max(maxCursorLength).optional(),
 });
 const cursorSchema = z.object({ createdAt: z.iso.datetime(), id: z.uuid() });
 export type Cursor = z.infer<typeof cursorSchema>;

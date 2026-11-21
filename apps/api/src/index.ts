@@ -1,3 +1,4 @@
+import helmet from 'helmet';
 import { sessionMiddleware } from './middleware/session.js';
 import { env } from './config/env.js';
 import { createAuthRoutes } from './routes/auth-routes.js';
@@ -39,6 +40,16 @@ if (
 const { version } = packageInfo;
 
 app.use(requestLogger);
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        'upgrade-insecure-requests': env.NODE_ENV === 'production' ? [] : null,
+      },
+    },
+    strictTransportSecurity: env.NODE_ENV === 'production',
+  })
+);
 app.use(allowCors);
 
 app.get('/health', (_request, response) => {
@@ -60,7 +71,7 @@ app.get('/health/ready', async (_request, response) => {
   response.json({ status: 'ok' });
 });
 
-app.use(express.json());
+app.use(express.json({ limit: '16kb' }));
 app.use('/api', sessionMiddleware);
 app.use('/api/auth', createAuthRoutes(userRepository));
 app.use('/api/bears', createBearRoutes(bearRepository));

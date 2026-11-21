@@ -6,7 +6,7 @@ import {
   OpenApiGeneratorV31,
   type ResponseConfig,
 } from '@asteasolutions/zod-to-openapi';
-import { bearSchema } from '../models/bears.js';
+import { bearSchema, bearSearchQuery } from '../models/bears.js';
 import { commentSchema, newCommentSchema } from '../models/comments.js';
 import { problemSchema } from '../errors.js';
 
@@ -40,12 +40,12 @@ const requestHeaders = z.object({
     .describe('Optional request ID. Invalid IDs are replaced with a UUID.'),
 });
 const bearParams = z.object({
-  id: z.string().describe('Binomial slug, for example u-arctos.'),
+  id: bearSchema.shape.id.describe('Binomial slug, for example u-arctos.'),
 });
 const commentParams = z.object({
-  commentId: z
-    .string()
-    .describe('Comment ID returned when creating a comment.'),
+  commentId: commentSchema.shape.id.describe(
+    'Comment ID returned when creating a comment.'
+  ),
 });
 
 function jsonResponse(description: string, schema: z.ZodType): ResponseConfig {
@@ -66,6 +66,13 @@ function problemResponse(
     content: { 'application/problem+json': { schema } },
   };
 }
+
+const rateLimitResponse: ResponseConfig = {
+  ...problemResponse('Too many attempts; wait before retrying.'),
+  headers: responseHeaders.extend({
+    'Retry-After': z.string().describe('Seconds until retry.'),
+  }),
+};
 
 const serverErrors = {
   '500': problemResponse(
@@ -90,7 +97,7 @@ registry.registerPath({
   summary: 'List bears by name',
   request: {
     headers: requestHeaders,
-    query: z.object({ q: z.string().optional() }),
+    query: bearSearchQuery,
   },
   responses: {
     '200': jsonResponse('Bears in Wikipedia order.', z.array(bear)),
@@ -213,6 +220,8 @@ registry.registerPath({
     '201': jsonResponse('User registered.', userSchema),
     '400': problemResponse('Invalid registration details.', validationProblem),
     '409': problemResponse('Email already registered.'),
+    '413': problemResponse('Request body exceeds 16 KB.'),
+    '429': rateLimitResponse,
     ...serverErrors,
   },
 });
@@ -231,6 +240,8 @@ registry.registerPath({
     '200': jsonResponse('Logged-in user.', userSchema),
     '400': problemResponse('Invalid login details.', validationProblem),
     '401': problemResponse('Invalid credentials.'),
+    '413': problemResponse('Request body exceeds 16 KB.'),
+    '429': rateLimitResponse,
     ...serverErrors,
   },
 });

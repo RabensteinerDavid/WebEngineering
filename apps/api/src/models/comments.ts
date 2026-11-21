@@ -3,7 +3,7 @@ const minimumLength = 1;
 const maxAuthorLength = 80;
 const maxTextLength = 2000;
 
-export const newCommentSchema = z.object({
+export const newCommentSchema = z.strictObject({
   author: z.string().trim().min(minimumLength).max(maxAuthorLength),
   text: z.string().trim().min(minimumLength).max(maxTextLength),
 });

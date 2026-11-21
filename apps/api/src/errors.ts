@@ -6,6 +6,7 @@ import type { ErrorRequestHandler, RequestHandler } from 'express';
 const badRequest = 400;
 const notFound = 404;
 const internalError = 500;
+const payloadTooLarge = 413;
 
 const fieldErrorSchema = z.object({ field: z.string(), message: z.string() });
 type FieldError = z.infer<typeof fieldErrorSchema>;
@@ -65,6 +66,10 @@ export const requestLogger: RequestHandler = (request, response, next) => {
   next();
 };
 
+function isBodyError(error: unknown, type: string): boolean {
+  return error instanceof Error && 'type' in error && error.type === type;
+}
+
 export const errorHandler: ErrorRequestHandler = (
   error: unknown,
   _request,
@@ -84,11 +89,12 @@ export const errorHandler: ErrorRequestHandler = (
   );
   if (error instanceof HttpError) {
     problem = error;
-  } else if (
-    error instanceof SyntaxError &&
-    'type' in error &&
-    error.type === 'entity.parse.failed'
-  ) {
+  } else if (isBodyError(error, 'entity.too.large')) {
+    problem = new HttpError(
+      payloadTooLarge,
+      'Request body exceeds the 16 KB limit.'
+    );
+  } else if (isBodyError(error, 'entity.parse.failed')) {
     problem = new ValidationError('The request body contains invalid JSON.', [
       { field: 'body', message: 'Provide valid JSON.' },
     ]);

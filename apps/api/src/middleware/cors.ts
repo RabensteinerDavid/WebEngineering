@@ -7,5 +7,5 @@ export const allowCors = cors({
   credentials: true,
   methods: ['GET', 'POST', 'DELETE'],
   allowedHeaders: ['Content-Type', 'x-request-id'],
-  exposedHeaders: ['Location', 'x-request-id'],
+  exposedHeaders: ['Location', 'x-request-id', 'Retry-After'],
 });
