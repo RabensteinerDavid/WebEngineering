@@ -976,3 +976,38 @@ Parameterized queries keep SQL structure separate from input values. For example
 Stored XSS happens when saved input is later interpreted as executable HTML or JavaScript. React escapes comment text when rendering it, so an HTML payload is displayed as text. A CSP on the frontend's HTML response can provide an additional layer by restricting script execution. The API's Helmet headers do not automatically protect HTML served by Vite or Nginx.
 
 The server validates inputs, enforces permissions and returns comments as JSON. It should not treat user text as trusted HTML. If rich HTML were allowed later, it would need an explicit sanitization policy; the browser UI must still use safe rendering. Input validation alone does not prevent stored XSS.
+
+### Playground 7 — Task 1: HTTP caching with ETags
+
+| Response | Cache-Control |
+| --- | --- |
+| Bear list and bear detail (including search results) | `public, max-age=60, stale-while-revalidate=300` |
+| Comment list and comment detail | `private, no-cache` |
+| Auth endpoints, POST/DELETE responses, errors and other responses | `private, no-store` |
+
+**curl demonstration** (run the local HTTP API first):
+
+```sh
+curl -i http://localhost:3000/api/bears
+```
+
+Copy the complete ETag header value, including `W/` and quotation marks, into the next request:
+
+```sh
+curl -i http://localhost:3000/api/bears \
+  -H 'If-None-Match: W/"REPLACE_WITH_RETURNED_ETAG"'
+```
+
+Expected: **304**, the same cache policy and no response body.
+
+```sh
+npm test -w apps/api -- test/cache.test.mjs
+```
+
+### Theory
+
+Freshness versus validation, private versus public caches, no-store versus no-cache, and what Vary is for. Map the client-side strategies from the PWA unit to server headers.
+
+### Answer
+
+Freshness allows cached responses to be reused without contacting the server, while validation checks whether they are still up to date using `ETag` or `Last-Modified`. Private caches are specific to one user, while public caches are shared across users. `no-store` prevents caching, whereas `no-cache` requires validation before reuse. `Vary` specifies which request headers affect cache selection. PWA strategies approximately map to HTTP headers: Cache First to `max-age`, Network First to `no-cache`, Network Only to `no-store`, and Stale While Revalidate to `stale-while-revalidate`. Cache Only has no direct HTTP equivalent.

@@ -9,7 +9,12 @@ export function createBearRoutes(bears: BearRepository): Router {
 
   bearRoutes.get('/', async (request, response) => {
     const { q } = validate(bearSearchQuery, request.query);
-    response.json(await bears.list(q));
+    const entries = await bears.list(q);
+    response.set(
+      'Cache-Control',
+      'public, max-age=60, stale-while-revalidate=300'
+    );
+    response.json(entries);
   });
 
   bearRoutes.get('/:id', async (request, response) => {
@@ -18,6 +23,10 @@ export function createBearRoutes(bears: BearRepository): Router {
       validate(bearSchema.shape.id, request.params.id)
     );
     if (bear === undefined) throw new NotFoundError('Bear not found.');
+    response.set(
+      'Cache-Control',
+      'public, max-age=60, stale-while-revalidate=300'
+    );
     response.json(bear);
   });
   return bearRoutes;

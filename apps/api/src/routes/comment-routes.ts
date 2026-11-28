@@ -53,13 +53,13 @@ export function createCommentRoutes(
     const {
       data: { limit, cursor },
     } = query;
-    response.json(
-      await comments.listByBear(
-        id,
-        limit,
-        cursor === undefined ? undefined : decodeCursor(cursor)
-      )
+    const page = await comments.listByBear(
+      id,
+      limit,
+      cursor === undefined ? undefined : decodeCursor(cursor)
     );
+    response.set('Cache-Control', 'private, no-cache');
+    response.json(page);
   });
 
   commentRoutes.post('/bears/:id/comments', async (request, response) => {
@@ -99,6 +99,7 @@ export function createCommentRoutes(
       throw new NotFoundError('Comment not found.');
     }
 
+    response.set('Cache-Control', 'private, no-cache');
     response.json(comment);
   });
 

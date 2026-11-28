@@ -105,6 +105,7 @@ export const errorHandler: ErrorRequestHandler = (
 
   const requestId = String(response.getHeader('x-request-id'));
   response
+    .set('Cache-Control', 'private, no-store')
     .status(problem.status)
     .type('application/problem+json')
     .json({

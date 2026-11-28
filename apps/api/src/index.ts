@@ -1,3 +1,4 @@
+import { preventCaching } from './middleware/cache-policy.js';
 import helmet from 'helmet';
 import { sessionMiddleware } from './middleware/session.js';
 import { env } from './config/env.js';
@@ -39,6 +40,8 @@ if (
 }
 const { version } = packageInfo;
 
+app.set('etag', 'weak');
+app.use(preventCaching);
 app.use(requestLogger);
 app.use(
   helmet({
