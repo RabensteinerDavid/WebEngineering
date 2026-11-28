@@ -1,8 +1,7 @@
-import { sql } from 'drizzle-orm';
 import { readFile } from 'node:fs/promises';
-import { db, pool } from './client.js';
+import { pool } from './client.js';
 import { bearSchema } from '../models/bears.js';
-import { bears } from './schema.js';
+import { saveBears } from './save-bears.js';
 
 try {
   const json = await readFile(
@@ -10,21 +9,7 @@ try {
     'utf8'
   );
   const entries = bearSchema.array().nonempty().parse(JSON.parse(json));
-  const rows = entries.map((bear, position) => ({ ...bear, position }));
-
-  await db
-    .insert(bears)
-    .values(rows)
-    .onConflictDoUpdate({
-      target: bears.id,
-      set: {
-        name: sql`excluded.name`,
-        binomial: sql`excluded.binomial`,
-        image: sql`excluded.image_url`,
-        range: sql`excluded.range`,
-        position: sql`excluded.position`,
-      },
-    });
+  await saveBears(entries);
 } finally {
   await pool.end();
 }

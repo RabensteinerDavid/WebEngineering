@@ -1011,3 +1011,63 @@ Freshness versus validation, private versus public caches, no-store versus no-ca
 ### Answer
 
 Freshness allows cached responses to be reused without contacting the server, while validation checks whether they are still up to date using `ETag` or `Last-Modified`. Private caches are specific to one user, while public caches are shared across users. `no-store` prevents caching, whereas `no-cache` requires validation before reuse. `Vary` specifies which request headers affect cache selection. PWA strategies approximately map to HTTP headers: Cache First to `max-age`, Network First to `no-cache`, Network Only to `no-store`, and Stale While Revalidate to `stale-while-revalidate`. Cache Only has no direct HTTP equivalent.
+
+### Playground 7 — Task 2: Server-side cache
+
+**Start and inspect counters:**
+
+```sh
+npm run dev
+curl -s http://localhost:3000/metrics
+node apps/api/scripts/check-cache.mjs
+curl -s http://localhost:3000/metrics
+```
+
+The tests independently prove coalescing for both the repository and a stubbed Wikipedia upstream, retry after failure, size eviction, and invalidation while a load is pending:
+
+```sh
+npm test -w apps/api -- test/server-cache.test.mjs
+```
+
+**Refresh or restore fixture data:**
+
+```sh
+npm run db:refresh
+# Or restore/update from the committed fixture:
+npm run db:seed
+```
+
+These commands update bear data. Neither deletes comments or users. When running the API in Docker, run the scripts in the API container so its internal database URL is used, for example `docker compose exec api npm run db:refresh -w apps/api`.
+
+```sh
+npm run build
+BEARS_CACHE_ENABLED=false node --env-file=.env apps/api/dist/index.js
+```
+
+In a second terminal, discard the warm-up result, then record the measured run:
+
+```sh
+npm exec -w apps/api -- autocannon -c 50 -d 20 http://localhost:3000/api/bears
+npm exec -w apps/api -- autocannon -c 50 -d 20 http://localhost:3000/api/bears
+```
+
+Stop the API and repeat both load-test commands after starting it with caching enabled:
+
+```sh
+BEARS_CACHE_ENABLED=true node --env-file=.env apps/api/dist/index.js
+```
+
+| Mode | Requests/second | Average latency | p99 latency | Total requests | Data transferred |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Cache disabled | 2,957.4 | 16.41 ms | 25 ms | ~59,000 | 200 MB |
+| Cache enabled | 7,579.8 | 6.09 ms | 13 ms | ~152,000 | 513 MB |
+
+Both runs lasted 20.02 seconds. With caching enabled, throughput was approximately 2.56 times higher, average latency decreased by 63%, and p99 latency decreased by 48%.
+
+### Theory
+
+Cache-aside versus read-through, TTL versus event-based invalidation, and the cache stampede problem. When would you move the cache to Redis, and what changes with several API instances?
+
+### Answer
+
+With cache-aside, the application manages the cache and loads missing data from the database, while read-through delegates this responsibility to the cache layer. TTL invalidation expires entries after a fixed time, whereas event-based invalidation removes or updates entries when data changes. A cache stampede occurs when many concurrent requests try to reload the same expired entry, potentially overloading the database. Redis is useful when multiple API instances need a shared cache to avoid inconsistent data and duplicated entries. However, it introduces network latency, an external dependency, and the need for distributed coordination.

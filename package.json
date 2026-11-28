@@ -17,7 +17,8 @@
     "db:seed": "npm run db:seed -w apps/api",
     "test": "npm test -w apps/api",
     "report:storm": "npm run report:storm -w apps/api",
-    "db:seed:moderator": "npm run db:seed:moderator -w apps/api"
+    "db:seed:moderator": "npm run db:seed:moderator -w apps/api",
+    "db:refresh": "npm run db:refresh -w apps/api"
   },
   "lint-staged": {
     "apps/*/src/**/*": "prettier --write",

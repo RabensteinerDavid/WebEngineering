@@ -17,6 +17,8 @@ services:
 
   api:
     environment:
+      BEARS_CACHE_ENABLED: ${BEARS_CACHE_ENABLED:-true}
+      WIKIPEDIA_API_URL: ${WIKIPEDIA_API_URL:-https://en.wikipedia.org/w/api.php}
       NODE_ENV: ${NODE_ENV:-development}
       SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4173}

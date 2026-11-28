@@ -8,6 +8,8 @@ const envSchema = z.object({
     .enum(['development', 'test', 'production'])
     .default('development'),
   SESSION_SECRET: z.string().min(minimumSecretLength),
+  BEARS_CACHE_ENABLED: z.stringbool().default(true),
+  WIKIPEDIA_API_URL: httpUrl.default('https://en.wikipedia.org/w/api.php'),
   DATABASE_URL: z.url({ protocol: /^postgres(?:ql)?$/v }),
   CORS_ORIGINS: z
     .string()

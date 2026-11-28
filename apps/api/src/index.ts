@@ -1,3 +1,6 @@
+import { withBearsCache } from './services/bear-service.js';
+import { listenForBearChanges } from './cache/invalidation.js';
+import { bearsCache, wikipediaCache } from './cache/bears-cache.js';
 import { preventCaching } from './middleware/cache-policy.js';
 import helmet from 'helmet';
 import { sessionMiddleware } from './middleware/session.js';
@@ -55,6 +58,10 @@ app.use(
 );
 app.use(allowCors);
 
+app.get('/metrics', (_request, response) => {
+  response.json({ bears: bearsCache.stats, wikipedia: wikipediaCache.stats });
+});
+
 app.get('/health', (_request, response) => {
   response.json({ status: 'ok', version, uptime: process.uptime() });
 });
@@ -77,7 +84,12 @@ app.get('/health/ready', async (_request, response) => {
 app.use(express.json({ limit: '16kb' }));
 app.use('/api', sessionMiddleware);
 app.use('/api/auth', createAuthRoutes(userRepository));
-app.use('/api/bears', createBearRoutes(bearRepository));
+app.use(
+  '/api/bears',
+  createBearRoutes(
+    env.BEARS_CACHE_ENABLED ? withBearsCache(bearRepository) : bearRepository
+  )
+);
 app.use(
   '/api',
   createCommentRoutes(bearRepository, commentRepository, userRepository)
@@ -98,6 +110,8 @@ app.use(() => {
   throw new NotFoundError('Route not found.');
 });
 app.use(errorHandler);
+
+await listenForBearChanges();
 
 app.listen(port, '0.0.0.0', () => {
   process.stdout.write(`API running on http://localhost:${port}\n`);
